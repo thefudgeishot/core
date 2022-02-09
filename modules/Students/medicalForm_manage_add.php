@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
@@ -39,9 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
     $gibbonPersonID = (isset($_GET['gibbonPersonID']))? $_GET['gibbonPersonID'] : '';
     $search = $_GET['search'];
     if ($search != '') {
-        echo "<div class='linkTop'>";
-        echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Students/medicalForm_manage.php&search=$search'>".__('Back to Search Results').'</a>';
-        echo '</div>';
+        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Students', 'medicalForm_manage.php')->withQueryParam('search', $search));
     }
 
     $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module')."/medicalForm_manage_addProcess.php?search=$search");
@@ -50,7 +49,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
 
     $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('General Information'));
+    $form->addRow()->addHeading('General Information', __('General Information'));
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonID', __('Student'));

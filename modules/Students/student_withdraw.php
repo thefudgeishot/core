@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
@@ -32,7 +33,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.
 
     $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('Basic Information'));
+    $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonID', __('Student'));
@@ -46,7 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.
         $row->addLabel('dateEnd', __('End Date'))->description(__("Users's last day at school."));
         $row->addDate('dateEnd')->required();
 
-    $departureReasonsList = getSettingByScope($connection2, 'User Admin', 'departureReasons');
+    $departureReasonsList = $container->get(SettingGateway::class)->getSettingByScope('User Admin', 'departureReasons');
     $row = $form->addRow();
         $row->addLabel('departureReason', __('Departure Reason'));
         if (!empty($departureReasonsList)) {
@@ -61,14 +62,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.
         $row->addTextField('nextSchool')->maxLength(100)->autocomplete($schools);
 
     // NOTES
-    $form->addRow()->addHeading(__('Notes'));
+    $form->addRow()->addHeading('Notes', __('Notes'));
 
     $col = $form->addRow()->addColumn();
         $col->addLabel('withdrawNote', __('Withdraw Note'))->description(__('If provided, these will be saved in student notes, as well as shared with notification recipients.'));
         $col->addTextArea('withdrawNote');
 
     // NOTIFICATIONS
-    $form->addRow()->addHeading(__('Notifications'));
+    $form->addRow()->addHeading('Notifications', __('Notifications'));
 
     $row = $form->addRow();
         $row->addLabel('notify', __('Automatically Notify'));

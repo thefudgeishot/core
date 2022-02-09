@@ -16,8 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $gibbonYearGroupID = $_GET['gibbonYearGroupID'] ?? '';
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/yearGroup_manage_edit.php&gibbonYearGroupID='.$gibbonYearGroupID;
@@ -27,7 +30,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_man
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonYearGroupID specified
     if ($gibbonYearGroupID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");

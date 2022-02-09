@@ -58,6 +58,14 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemSetting
     $phpRequirement = $gibbon->getSystemRequirement('php');
     $mysqlRequirement = $gibbon->getSystemRequirement('mysql');
 
+    // Uploads folder check, make a request using a Guzzle HTTP get request
+    $statusCheck = checkUploadsFolderStatus($session->get('absoluteURL'));
+    if (!$statusCheck) {
+        $uploadsCheck = Format::alert(__('The system check has detected that your uploads folder may be publicly accessible. This suggests a serious issue in your server configuration that should be addressed immediately. Please visit our {documentation} page for instructions to fix this issue.', [
+            'documentation' => Format::link('https://docs.gibbonedu.org/administrators/getting-started/installing-gibbon/#post-install-server-config', __('Post-Install and Server Config')),
+        ]), 'error');
+    }
+
     echo $page->fetchFromTemplate('systemOverview.twig.html', [
         'gibbonVersion' => $version,
         'gibbonCheck'   => '',
@@ -66,7 +74,8 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemSetting
         'mySqlVersion'  => $mysqlVersion,
         'mySqlCheck'    => version_compare($mysqlVersion, $mysqlRequirement, '>='),
 
-        'versionCheck' => getCurrentVersion($guid, $connection2, $version),
+        'versionCheck'  => getCurrentVersion($guid, $connection2, $version),
+        'uploadsCheck'  => $uploadsCheck ?? '',
 
         'gibboneduComOrganisationName' => $gibbon->session->get('gibboneduComOrganisationName'),
         'gibboneduComOrganisationKey'  => $gibbon->session->get('gibboneduComOrganisationKey'),

@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
@@ -37,9 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_a
 
     $search = $_GET['search'];
     if ($search != '') {
-        echo "<div class='linkTop'>";
-        echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/User Admin/family_manage.php&search=$search'>".__('Back to Search Results').'</a>';
-        echo '</div>';
+        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('User Admin', 'family_manage.php')->withQueryParam('search', $search));
     }
 
     $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module')."/family_manage_addProcess.php?search=$search");
@@ -47,7 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_a
     
     $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('General Information'));
+    $form->addRow()->addHeading('General Information', __('General Information'));
 
     $row = $form->addRow();
         $row->addLabel('name', __('Family Name'));

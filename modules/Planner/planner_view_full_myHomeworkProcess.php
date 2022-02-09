@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Data\Validator;
 use Gibbon\Services\Format;
 
-//Gibbon system-wide includes
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['homeworkDetails' => 'HTML']);
 
 //Module includes
 include './moduleFunctions.php';
@@ -66,9 +68,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
             //Get variables
             $homework = $_POST['homework'];
             if ($homework == 'Y') {
-                //Attempt to prevent XSS attack
-                $homeworkDetails = $_POST['homeworkDetails'];
-                $homeworkDetails = tinymceStyleStripTags($homeworkDetails, $connection2);
+                $homeworkDetails = $_POST['homeworkDetails'] ?? '';
                 if ($_POST['homeworkDueDateTime'] != '') {
                     $homeworkDueDateTime = $_POST['homeworkDueDateTime'].':59';
                 } else {

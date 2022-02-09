@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 
@@ -36,8 +37,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
         //Set variables
         $today = date('Y-m-d');
 
-        $homeworkNameSingular = getSettingByScope($connection2, 'Planner', 'homeworkNameSingular');
-        $homeworkNamePlural = getSettingByScope($connection2, 'Planner', 'homeworkNamePlural');
+        $settingGateway = $container->get(SettingGateway::class);
+        $homeworkNameSingular = $settingGateway->getSettingByScope('Planner', 'homeworkNameSingular');
+        $homeworkNamePlural = $settingGateway->getSettingByScope('Planner', 'homeworkNamePlural');
 
         //Proceed!
         //Get viewBy, date and class variables
@@ -64,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
             if ($date == '') {
                 $date = date('Y-m-d');
             }
-            list($dateYear, $dateMonth, $dateDay) = explode('-', $date);
+            [$dateYear, $dateMonth, $dateDay] = explode('-', $date);
             $dateStamp = mktime(0, 0, 0, $dateMonth, $dateDay, $dateYear);
             $params += [
                 'viewBy' => 'date',
@@ -84,10 +86,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
             ];
 		}
 
-        list($todayYear, $todayMonth, $todayDay) = explode('-', $today);
+        [$todayYear, $todayMonth, $todayDay] = explode('-', $today);
         $todayStamp = mktime(12, 0, 0, $todayMonth, $todayDay, $todayYear);
 
-        //Check if school year specified
+        ///Check if gibbonPlannerEntryID and gibbonCourseClassID specified
         $gibbonCourseClassID = $_GET['gibbonCourseClassID'];
         $gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'];
         if ($gibbonPlannerEntryID == '' or ($viewBy == 'class' and $gibbonCourseClassID == 'Y')) {
@@ -296,7 +298,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
                             $row->addTime('timeEnd')->setValue(substr($next['end'], 0, 5))->required();
 
                         if ($values['homework'] == 'Y') {
-                            $form->addRow()->addHeading(__($homeworkNamePlural));
+                            $form->addRow()->addHeading($homeworkNamePlural, __($homeworkNamePlural));
 
                             $row = $form->addRow();
                                 $row->addLabel('homeworkDueDate', __('{homeworkName} Due Date', ['homeworkName' => __($homeworkNameSingular)]));

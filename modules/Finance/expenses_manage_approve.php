@@ -17,7 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Module\Finance\Tables\ExpenseLog;
 
 //Module includes
@@ -43,10 +46,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
             ->add(__('Approve/Reject Expense'));
 
         //Check if params are specified
-        $gibbonFinanceExpenseID = isset($_GET['gibbonFinanceExpenseID'])? $_GET['gibbonFinanceExpenseID'] : '';
+        $gibbonFinanceExpenseID = $_GET['gibbonFinanceExpenseID'] ?? '';
         $status = '';
-        $status2 = isset($_GET['status2'])? $_GET['status2'] : '';
-        $gibbonFinanceBudgetID2 = isset($_GET['gibbonFinanceBudgetID2'])? $_GET['gibbonFinanceBudgetID2'] : '';
+        $status2 = $_GET['status2'] ?? '';
+        $gibbonFinanceBudgetID2 = $_GET['gibbonFinanceBudgetID2'] ?? '';
         if ($gibbonFinanceExpenseID == '' or $gibbonFinanceBudgetCycleID == '') {
             echo "<div class='error'>";
             echo __('You have not specified one or more required parameters.');
@@ -73,9 +76,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
                 echo '</div>';
             } else {
                 //Get and check settings
-                $expenseApprovalType = getSettingByScope($connection2, 'Finance', 'expenseApprovalType');
-                $budgetLevelExpenseApproval = getSettingByScope($connection2, 'Finance', 'budgetLevelExpenseApproval');
-                $expenseRequestTemplate = getSettingByScope($connection2, 'Finance', 'expenseRequestTemplate');
+                $settingGateway = $container->get(SettingGateway::class);
+                $expenseApprovalType = $settingGateway->getSettingByScope('Finance', 'expenseApprovalType');
+                $budgetLevelExpenseApproval = $settingGateway->getSettingByScope('Finance', 'budgetLevelExpenseApproval');
+                $expenseRequestTemplate = $settingGateway->getSettingByScope('Finance', 'expenseRequestTemplate');
                 if ($expenseApprovalType == '' or $budgetLevelExpenseApproval == '') {
                     echo "<div class='error'>";
                     echo __('An error has occurred with your expense and budget settings.');
@@ -133,9 +137,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
                             $values = $result->fetch();
 
                             if ($status2 != '' or $gibbonFinanceBudgetID2 != '') {
-                                echo "<div class='linkTop'>";
-                                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/expenses_manage.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&status2=$status2&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2'>".__('Back to Search Results').'</a>';
-                                echo '</div>';
+                                 $params = [
+                                    "gibbonFinanceBudgetCycleID" => $gibbonFinanceBudgetCycleID,
+                                    "status2" => $status2,
+                                    "gibbonFinanceBudgetID2" =>$gibbonFinanceBudgetID2
+                                ];
+                                $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Finance', 'expenses_manage.php')->withQueryParams($params));
                             }
 
                             // Get budget allocation & allocated amounts
@@ -151,7 +158,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
 							$form->addHiddenValue('gibbonFinanceBudgetID2', $gibbonFinanceBudgetID2);
 							$form->addHiddenValue('gibbonFinanceBudgetCycleID', $gibbonFinanceBudgetCycleID);
 
-							$form->addRow()->addHeading(__('Basic Information'));
+							$form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
 							$cycleName = getBudgetCycleName($gibbonFinanceBudgetCycleID, $connection2);
 							$row = $form->addRow();
@@ -195,7 +202,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
 								$col->addLabel('purchaseDetails', __('Purchase Details'));
 								$col->addContent($values['purchaseDetails']);
 
-                            $form->addRow()->addHeading(__('Budget Tracking'));
+                            $form->addRow()->addHeading('Budget Tracking', __('Budget Tracking'));
 
                             $row = $form->addRow();
                                 $row->addLabel('costLabel', __('Total Cost'));
@@ -203,7 +210,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
 
 							$row = $form->addRow();
 								$row->addLabel('countAgainstBudgetLabel', __('Count Against Budget'));
-                                $row->addTextField('countAgainstBudgetLabel')->setValue(ynExpander($guid, $values['countAgainstBudget']))->required()->readonly();
+                                $row->addTextField('countAgainstBudgetLabel')->setValue(Format::yesNo($values['countAgainstBudget']))->required()->readonly();
 
                             if ($values['countAgainstBudget'] == 'Y') {
                                 $budgetAllocationLabel = (is_numeric($budgetAllocation))? number_format($budgetAllocation, 2, '.', ',') : $budgetAllocation;
@@ -226,12 +233,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
                                         ->addClass( (is_numeric($budgetRemaining) && $budgetRemaining - $values['cost'] > 0)? 'textUnderBudget' : 'textOverBudget' );
                             }
 
-                            $form->addRow()->addHeading(__('Log'));
+                            $form->addRow()->addHeading('Log', __('Log'));
 
                             $expenseLog = $container->get(ExpenseLog::class)->create($gibbonFinanceExpenseID);
                             $form->addRow()->addContent($expenseLog->getOutput());
 
-                            $form->addRow()->addHeading(__('Action'));
+                            $form->addRow()->addHeading('Action', __('Action'));
 
                             $approvalRequired = approvalRequired($guid, $session->get('gibbonPersonID'), $values['gibbonFinanceExpenseID'], $gibbonFinanceBudgetCycleID, $connection2);
                             if ($approvalRequired != true) {

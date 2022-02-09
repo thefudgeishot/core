@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Data\Validator;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Services\Format;
-use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Contracts\Comms\SMS;
+use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Comms\NotificationSender;
 use Gibbon\Domain\System\LogGateway;
 use Gibbon\Domain\System\NotificationGateway;
@@ -45,6 +47,9 @@ else {
 		$emailCount=NULL ;
 		$smsCount=NULL ;
 		$smsBatchCount=NULL ;
+
+        $validator = $container->get(Validator::class);
+        $_POST = $validator->sanitize($_POST, ['body' => 'HTML']);
 
 		//Validate Inputs
 		$email=$_POST["email"] ;
@@ -92,8 +97,10 @@ else {
 			$sms="N" ;
 		}
 		$smsCreditBalance = ($sms == "Y" && !empty($_POST["smsCreditBalance"])) ? $_POST["smsCreditBalance"] : null;
-		$subject=$_POST["subject"] ;
-		$body=stripslashes($_POST["body"]) ;
+
+        $subject = $_POST['subject'] ?? '';
+        $body = stripslashes($_POST['body'] ?? '');
+
 		$emailReceipt = $_POST["emailReceipt"] ;
 		$emailReceiptText = null;
 		if (isset($_POST["emailReceiptText"])) {
@@ -106,11 +113,13 @@ else {
             return ['return' => 'fail3'];
 		}
 		else {
+            $settingGateway = $container->get(SettingGateway::class);
+
 			//SMS Credit notification
 			if ($smsCreditBalance != null && $smsCreditBalance < 1000) {
 				$notificationGateway = new NotificationGateway($pdo);
-			  $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
-				$organisationAdministrator = getSettingByScope($connection2, 'System', 'organisationAdministrator');
+                $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
+				$organisationAdministrator = $settingGateway->getSettingByScope('System', 'organisationAdministrator');
 				$notificationString = __('Low SMS credit warning.');
 				$notificationSender->addNotification($organisationAdministrator, $notificationString, "Messenger", "/index.php?q=/modules/Messenger/messenger_post.php");
 				$notificationSender->sendNotifications();
@@ -120,7 +129,7 @@ else {
 			$report = array();
 			//Get country code
 			$countryCode="" ;
-			$country=getSettingByScope($connection2, "System", "country") ;
+			$country=$settingGateway->getSettingByScope("System", "country") ;
 			$countryCodeTemp = '';
 			try {
 				$dataCountry=array("printable_name"=>$country);
@@ -1949,6 +1958,32 @@ else {
 					$partialFail = true;
 				}
             }
+
+            if ($sms=="Y") {
+				if ($countryCode=="") {
+					$partialFail = true;
+				} else {
+                    $recipients = array_filter(array_reduce($report, function ($phoneNumbers, $reportEntry) {
+                        if ($reportEntry[3] == 'SMS') $phoneNumbers[] = '+'.$reportEntry[4];
+                        return $phoneNumbers;
+                    }, []));
+
+                    $sms = $container->get(SMS::class);
+
+                    $result = $sms
+                        ->content($body)
+                        ->send($recipients);
+
+                    $smsCount = count($recipients);
+                    $smsBatchCount = count($result);
+
+                    $smsStatus = $result ? 'OK' : 'Not OK';
+                    $partialFail &= !empty($result);
+
+					//Set log
+					$logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), getModuleID($connection2, $_POST["address"]), $session->get('gibbonPersonID'), 'SMS Send Status', array('Status' => $smsStatus, 'Result' => count($result), 'Recipients' => $recipients));
+				}
+			}
             
 			if ($email=="Y") {
 				//Set up email
@@ -2039,14 +2074,17 @@ else {
 						//Deal with student names
 						if ($individualNaming == "Y") {
 							$studentNames = '';
-							if ($reportEntry[7] != '') {
-								$lastComma = strrpos($reportEntry[7], ',');
-								if ($lastComma != false) {
-									$reportEntry[7] = substr_replace($reportEntry[7], ' &', $lastComma, 1);
-									$studentNames = '<i>'.__('This email relates to the following students: ').$reportEntry[7].'</i><br/><br/>';
-								}
-								else {
-									$studentNames = '<i>'.__('This email relates to the following student: ').$reportEntry[7].'</i><br/><br/>';
+                            $reportEntry[7] = !empty($reportEntry[7]) && is_array($reportEntry[7]) ? array_filter($reportEntry[7]) : [];
+
+							if (!empty($reportEntry[7]) && count($reportEntry[7]) > 0) {
+                                // Remove duplicates and build a string list of names
+                                $reportEntry[7] = array_unique($reportEntry[7]);
+                                $studentNameList = join(' & ', array_filter(array_merge(array(join(', ', array_slice($reportEntry[7], 0, -1))), array_slice($reportEntry[7], -1)), 'strlen'));
+
+								if (count($reportEntry[7]) > 1) {
+									$studentNames = '<i>'.__('This email relates to the following students: ').$studentNameList.'</i><br/><br/>';
+								} else {
+									$studentNames = '<i>'.__('This email relates to the following student: ').$studentNameList.'</i><br/><br/>';
 								}
 							}
 							$bodyOut = $studentNames.$bodyOut;
@@ -2066,7 +2104,7 @@ else {
 
                 // Optionally send bcc copies of this message, excluding recipients already sent to.
                 $recipientList = array_column($report, 4);
-                $messageBccList = explode(',', getSettingByScope($connection2, 'Messenger', 'messageBcc'));
+                $messageBccList = explode(',', $settingGateway->getSettingByScope('Messenger', 'messageBcc'));
                 $messageBccList = array_filter($messageBccList, function($recipient) use ($recipientList, $from) {
                     return $recipient != $from && !in_array($recipient, $recipientList);
                 });
@@ -2088,32 +2126,6 @@ else {
                 }
 
                 $mail->smtpClose();
-			}
-
-			if ($sms=="Y") {
-				if ($countryCode=="") {
-					$partialFail = true;
-				} else {
-                    $recipients = array_filter(array_reduce($report, function ($phoneNumbers, $reportEntry) {
-                        if ($reportEntry[3] == 'SMS') $phoneNumbers[] = '+'.$reportEntry[4];
-                        return $phoneNumbers;
-                    }, []));
-
-                    $sms = $container->get(SMS::class);
-
-                    $result = $sms
-                        ->content($body)
-                        ->send($recipients);
-
-                    $smsCount = count($recipients);
-                    $smsBatchCount = count($result);
-
-                    $smsStatus = $result ? 'OK' : 'Not OK';
-                    $partialFail &= !empty($result);
-
-					//Set log
-					$logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), getModuleID($connection2, $_POST["address"]), $session->get('gibbonPersonID'), 'SMS Send Status', array('Status' => $smsStatus, 'Result' => count($result), 'Recipients' => $recipients));
-				}
 			}
 
             return [

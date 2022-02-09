@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Domain\User\RoleGateway;
@@ -36,8 +37,8 @@ else {
 		print "</div>" ;
 	}
 	else {
-        $search = isset($_GET['search']) ? $_GET['search'] : null;
-        $updateReturn = isset($_GET["updateReturn"]) ? $_GET["updateReturn"] : '';
+        $search = $_GET['search'] ?? null;
+        $updateReturn = $_GET["updateReturn"] ?? '';
 
         $page->breadcrumbs
             ->add(__('Manage Messages'), 'messenger_manage.php', ['search' => $search])
@@ -70,7 +71,7 @@ else {
 			print "</div>" ;
 		}
 
-		//Check if school year specified
+		//Check if gibbonMessengerID specified
 		$gibbonMessengerID=$_GET["gibbonMessengerID"] ;
 		if ($gibbonMessengerID=="") {
 			print "<div class='error'>" ;
@@ -112,7 +113,7 @@ else {
 				$form->addHiddenValue('address', $session->get('address'));
 				$form->addHiddenValue('gibbonMessengerID', $values['gibbonMessengerID']);
 
-				$form->addRow()->addHeading(__('Delivery Mode'));
+				$form->addRow()->addHeading('Delivery Mode', __('Delivery Mode'));
 				//Delivery by email
 				if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_byEmail")) {
 					$row = $form->addRow();
@@ -149,10 +150,11 @@ else {
 
 				//Delivery by SMS
 				if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_bySMS")) {
-					$smsUsername=getSettingByScope( $connection2, "Messenger", "smsUsername" ) ;
-					$smsPassword=getSettingByScope( $connection2, "Messenger", "smsPassword" ) ;
-					$smsURL=getSettingByScope( $connection2, "Messenger", "smsURL" ) ;
-					$smsURLCredit=getSettingByScope( $connection2, "Messenger", "smsURLCredit" ) ;
+                    $settingGateway = $container->get(SettingGateway::class);
+					$smsUsername = $settingGateway->getSettingByScope("Messenger", "smsUsername" ) ;
+					$smsPassword = $settingGateway->getSettingByScope("Messenger", "smsPassword" ) ;
+					$smsURL = $settingGateway->getSettingByScope("Messenger", "smsURL" ) ;
+					$smsURLCredit = $settingGateway->getSettingByScope("Messenger", "smsURLCredit" ) ;
 					if ($smsUsername == "" OR $smsPassword == "" OR $smsURL == "") {
 						$row = $form->addRow()->addClass('sms');
 							$row->addLabel('sms', __('SMS'))->description(__('Deliver this message to user\'s mobile phone?'));
@@ -171,7 +173,7 @@ else {
 				}
 
 				//MESSAGE DETAILS
-				$form->addRow()->addHeading(__('Message Details'));
+				$form->addRow()->addHeading('Message Details', __('Message Details'));
 
 				$row = $form->addRow();
 					$row->addLabel('subject', __('Subject'));
@@ -187,7 +189,7 @@ else {
 					$form->addHiddenValue('emailReceipt', 'N');
 				}
 				else {
-					$form->addRow()->addHeading(__('Email Read Receipts'));
+					$form->addRow()->addHeading('Email Read Receipts', __('Email Read Receipts'));
 
 					$row = $form->addRow();
 						$row->addLabel('emailReceipt', __('Enable Read Receipts'))->description(__('Each email recipient will receive a personalised confirmation link.'));
@@ -204,7 +206,7 @@ else {
 				}
 
 				//TARGETS
-				$form->addRow()->addHeading(__('Targets'));
+				$form->addRow()->addHeading('Targets', __('Targets'));
 				$roleCategory = getRoleCategory($session->get('gibbonRoleIDCurrent'), $connection2);
 
 				//Get existing TARGETS
@@ -243,7 +245,7 @@ else {
 
 					foreach ($roles AS $role) {
 						$arrRoles[$role['gibbonRoleID']] = __($role['name'])." (".__($role['category']).")";
-					}                                       
+					}
 					$row = $form->addRow()->addClass('role hiddenReveal');
 						$row->addLabel('roles[]', __('Select Roles'));
 						$row->addSelect('roles[]')->fromArray($arrRoles)->selectMultiple()->setSize(6)->required()->placeholder()->selected($selected);

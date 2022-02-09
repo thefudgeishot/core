@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/formalAssessmentSettings.php') == false) {
@@ -30,14 +31,16 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/formalAssessm
 
     $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('Internal Assessment Settings'));
+    $form->addRow()->addHeading('Internal Assessment Settings', __('Internal Assessment Settings'));
 
-    $setting = getSettingByScope($connection2, 'Formal Assessment', 'internalAssessmentTypes', true);
+    $settingGateway = $container->get(SettingGateway::class);
+
+    $setting = $settingGateway->getSettingByScope('Formal Assessment', 'internalAssessmentTypes', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value'])->required();
 
-    $form->addRow()->addHeading(__('Primary External Assessement'))->append(__('These settings allow a particular type of external assessment to be associated with each year group. The selected assessment will be used as the primary assessment to be used as a baseline for comparison (for example, within the Markbook). You are required to select a particular field category from which to draw data (if no category is chosen, the data will not be saved).'));
+    $form->addRow()->addHeading('Primary External Assessement', __('Primary External Assessement'))->append(__('These settings allow a particular type of external assessment to be associated with each year group. The selected assessment will be used as the primary assessment to be used as a baseline for comparison (for example, within the Markbook). You are required to select a particular field category from which to draw data (if no category is chosen, the data will not be saved).'));
 
     $row = $form->addRow()->setClass('break');
         $row->addContent(__('Year Group'));
@@ -66,7 +69,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/formalAssessm
     }
 
     // Get and unserialize the current settings value
-    $primaryExternalAssessmentByYearGroup = unserialize(getSettingByScope($connection2, 'School Admin', 'primaryExternalAssessmentByYearGroup'));
+    $primaryExternalAssessmentByYearGroup = unserialize($settingGateway->getSettingByScope('School Admin', 'primaryExternalAssessmentByYearGroup'));
 
     // Split the ID portion off of the ID-category pair, for the first dropdown
     $primaryExternalAssessmentIDsByYearGroup = array_map(function($v) { return (mb_strpos($v, '-') !== false? mb_substr($v, 0, mb_strpos($v, '-')) : $v); }, $primaryExternalAssessmentByYearGroup);

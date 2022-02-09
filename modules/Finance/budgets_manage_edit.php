@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
@@ -35,7 +36,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
 
     $page->return->addReturns(['error4' => __('Your request failed due to an attachment error.')]);
 
-    //Check if school year specified
+    //Check if gibbonFinanceBudgetID specified
     $gibbonFinanceBudgetID = $_GET['gibbonFinanceBudgetID'];
     if ($gibbonFinanceBudgetID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -59,7 +60,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
 
             $form->addHiddenValue('address', $session->get('address'));
 
-            $form->addRow()->addHeading(__('General Settings'));
+            $form->addRow()->addHeading('General Settings', __('General Settings'));
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
@@ -73,7 +74,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
                 $row->addLabel('active', __('Active'));
                 $row->addYesNo('active')->required();
 
-            $categories = getSettingByScope($connection2, 'Finance', 'budgetCategories');
+            $categories = $container->get(SettingGateway::class)->getSettingByScope('Finance', 'budgetCategories');
             if (empty($categories)) {
                 $categories = 'Other';
             }
@@ -81,7 +82,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
                 $row->addLabel('category', __('Category'));
                 $row->addSelect('category')->fromString($categories)->placeholder()->required();
 
-            $form->addRow()->addHeading(__('Current Staff'));
+            $form->addRow()->addHeading('Current Staff', __('Current Staff'));
 
             $data = array('gibbonFinanceBudgetID' => $gibbonFinanceBudgetID);
             $sql = "SELECT preferredName, surname, gibbonFinanceBudgetPerson.* FROM gibbonFinanceBudgetPerson JOIN gibbonPerson ON (gibbonFinanceBudgetPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonFinanceBudgetID=:gibbonFinanceBudgetID AND gibbonPerson.status='Full' ORDER BY FIELD(access,'Full','Write','Read'), surname, preferredName";
@@ -108,7 +109,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
                 }
             }
 
-            $form->addRow()->addHeading(__('New Staff'));
+            $form->addRow()->addHeading('New Staff', __('New Staff'));
 
             $row = $form->addRow();
                 $row->addLabel('staff', __('Staff'));

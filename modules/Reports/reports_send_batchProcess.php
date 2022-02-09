@@ -20,11 +20,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Module\Reports\SendReportsProcess;
 use Gibbon\Module\Reports\Domain\ReportGateway;
 use Gibbon\Module\Reports\Domain\ReportArchiveEntryGateway;
+use Gibbon\Data\Validator;
 
 require_once '../../gibbon.php';
 
+$_POST = $container->get(Validator::class)->sanitize($_POST);
+
 $action = $_POST['action'] ?? [];
 $gibbonReportID = $_POST['gibbonReportID'] ?? '';
+$templateName = $_POST['templateName'] ?? '';
 $contextData = $_POST['contextData'] ?? '';
 $identifiers = $_POST['identifier'] ?? [];
 
@@ -58,12 +62,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_send_batch
         $reportArchiveEntryGateway->update($gibbonReportArchiveEntryID, ['timestampSent' => '0000-00-00 00:00:00']);
     }
     
-    if ($action == 'parents') {
+    if ($action == 'Send Reports to Parents') {
         $process = $container->get(SendReportsProcess::class);
-        $success = $process->startSendReportsToParents($gibbonReportID, $identifiers);
-    } elseif ($action == 'students') {
+        $success = $process->startSendReportsToParents($gibbonReportID, $templateName, $identifiers);
+    } elseif ($action == 'Send Reports to Students') {
         $process = $container->get(SendReportsProcess::class);
-        $success = $process->startSendReportsToStudents($gibbonReportID, $identifiers);
+        $success = $process->startSendReportsToStudents($gibbonReportID, $templateName, $identifiers);
     } else {
         $success = false;
     }

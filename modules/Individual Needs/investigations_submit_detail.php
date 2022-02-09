@@ -55,7 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
             $form->addHiddenValue('address', "/modules/Individual Needs/investigations_manage_edit.php");
             $form->addHiddenValue('gibbonINInvestigationID', $gibbonINInvestigationID);
             $form->addHiddenValue('gibbonINInvestigationContributionID', $gibbonINInvestigationContributionID);
-            $form->addRow()->addHeading(__('Basic Information'));
+            $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
             //Student
             $row = $form->addRow();
@@ -69,7 +69,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
 
             //Date
             $row = $form->addRow();
-            	$row->addLabel('date', __('Date'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
+            	$row->addLabel('date', __('Date'));
             	$row->addDate('date')->setValue(date($session->get('i18n')['dateFormatPHP']))->required()->readonly();
 
     		//Reason
@@ -103,7 +103,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
                 $column->addLabel('parentsResponseNo', __('Reason'))->description(__('Reasons why parents are not aware of the situation.'));
                 $column->addTextArea('parentsResponseNo')->setName('parentsResponse')->setRows(5)->setClass('fullWidth')->readonly()->required();
 
-            $form->addRow()->addHeading(__('Contributor Input'));
+            $form->addRow()->addHeading('Contributor Input', __('Contributor Input'));
 
             //Type
             $row = $form->addRow();

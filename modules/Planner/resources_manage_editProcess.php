@@ -16,8 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['html' => 'HTML']);
 
 $gibbonResourceID = $_GET['gibbonResourceID'] ?? '';
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/resources_manage_edit.php&gibbonResourceID=$gibbonResourceID&search=".$_GET['search'];
@@ -40,7 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_e
             exit;
         } else {
             //Proceed!
-            //Check if school year specified
+            //Check if gibbonResourceID specified
             if ($gibbonResourceID == '') {
                 $URL .= '&return=error1';
                 header("Location: {$URL}");
