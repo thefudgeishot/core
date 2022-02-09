@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
@@ -25,12 +26,13 @@ use Gibbon\Services\Format;
 require_once __DIR__ . '/moduleFunctions.php';
 
 //Get alternative header names
-$attainmentAlternativeName = getSettingByScope($connection2, 'Markbook', 'attainmentAlternativeName');
-$attainmentAlternativeNameAbrev = getSettingByScope($connection2, 'Markbook', 'attainmentAlternativeNameAbrev');
+$settingGateway = $container->get(SettingGateway::class);
+$attainmentAlternativeName = $settingGateway->getSettingByScope('Markbook', 'attainmentAlternativeName');
+$attainmentAlternativeNameAbrev = $settingGateway->getSettingByScope('Markbook', 'attainmentAlternativeNameAbrev');
 $hasAttainmentName = ($attainmentAlternativeName != '' && $attainmentAlternativeNameAbrev != '');
 
-$effortAlternativeName = getSettingByScope($connection2, 'Markbook', 'effortAlternativeName');
-$effortAlternativeNameAbrev = getSettingByScope($connection2, 'Markbook', 'effortAlternativeNameAbrev');
+$effortAlternativeName = $settingGateway->getSettingByScope('Markbook', 'effortAlternativeName');
+$effortAlternativeNameAbrev = $settingGateway->getSettingByScope('Markbook', 'effortAlternativeNameAbrev');
 $hasEffortName = ($effortAlternativeName != '' && $effortAlternativeNameAbrev != '');
 
 echo "<script type='text/javascript'>";
@@ -49,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
         echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
-        //Check if school year specified
+        //Check if gibbonCourseClassID and gibbonInternalAssessmentColumnID specified
         $gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
         $gibbonInternalAssessmentColumnID = $_GET['gibbonInternalAssessmentColumnID'] ?? '';
         if ($gibbonCourseClassID == '' or $gibbonInternalAssessmentColumnID == '') {
@@ -122,7 +124,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                     $form->setFactory(DatabaseFormFactory::create($pdo));
                     $form->addHiddenValue('address', $session->get('address'));
 
-                    $form->addRow()->addHeading(__('Assessment Details'));
+                    $form->addRow()->addHeading('Assessment Details', __('Assessment Details'));
 
                     $row = $form->addRow();
                         $row->addLabel('description', __('Description'));
@@ -134,7 +136,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
 
 
                     if (count($students) == 0) {
-                        $form->addRow()->addHeading(__('Students'));
+                        $form->addRow()->addHeading('Students', __('Students'));
                         $form->addRow()->addAlert(__('There are no records to display.'), 'error');
                     } else {
                         $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth colorOddEven noMargin noPadding noBorder');
@@ -223,7 +225,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
 
                     $form->addHiddenValue('count', $count);
 
-                    $form->addRow()->addHeading(__('Assessment Complete?'));
+                    $form->addRow()->addHeading('Assessment Complete?', __('Assessment Complete?'));
 
                     $row = $form->addRow();
                         $row->addLabel('completeDate', __('Go Live Date'))->prepend('1. ')->append('<br/>'.__('2. Column is hidden until date is reached.'));

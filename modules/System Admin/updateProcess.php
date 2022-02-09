@@ -19,8 +19,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Database\Updater;
 use Gibbon\Database\Migrations\EngineUpdate;
+use Gibbon\Domain\System\SessionGateway;
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -62,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/update.php') 
         $errors = $updater->update();
 
         if (!empty($errors)) {
-            $gibbon->session->set('systemUpdateError', $errors);
+            $session->set('systemUpdateError', $errors);
 
             $URL .= '&return=warning1';
             header("Location: {$URL}");
@@ -71,13 +75,23 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/update.php') 
             i18nCheckAndUpdateVersion($container, $updater->versionDB);
 
             // Clear the templates cache folder
-            removeDirectoryContents($gibbon->session->get('absolutePath').'/uploads/cache');
+            removeDirectoryContents($session->get('absolutePath').'/uploads/cache');
 
             // Clear the var/log folder
-            removeDirectoryContents($gibbon->session->get('absolutePath').'/var', true);
+            removeDirectoryContents($session->get('absolutePath').'/var', true);
 
             // Reset cache to force top-menu reload
-            $gibbon->session->forget('pageLoads');
+            $session->forget('pageLoads');
+
+            // Insert/update current session record to attach it to this user (prevent logout after update)
+            // TODO: This can likely be removed in v24+
+            $data = [
+                'gibbonSessionID' => session_id(),
+                'gibbonPersonID' => $session->get('gibbonPersonID'),
+                'sessionStatus' => 'Logged In',
+                'timestampModified' => date('Y-m-d H:i:s'),
+            ];
+            $container->get(SessionGateway::class)->insertAndUpdate($data, $data);
 
             $URL .= '&return=success0';
             header("Location: {$URL}");

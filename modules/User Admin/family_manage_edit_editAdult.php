@@ -32,10 +32,10 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
         ->add(__('Edit Family'), 'family_manage_edit.php', $urlParams)
         ->add(__('Edit Adult'));  
 
-    //Check if school year specified
-    $gibbonFamilyID = $_GET['gibbonFamilyID'];
-    $gibbonPersonID = $_GET['gibbonPersonID'];
-    $search = $_GET['search'];
+    //Check if gibbonPersonID and gibbonFamilyID specified
+    $gibbonFamilyID = $_GET['gibbonFamilyID'] ?? '';
+    $gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
+    $search = $_GET['search'] ?? '';
     if ($gibbonPersonID == '' or $gibbonFamilyID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
@@ -61,7 +61,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
 
             $form->addHiddenValue('address', $session->get('address'));
 
-            $form->addRow()->addHeading(__('Edit Adult'));
+            $form->addRow()->addHeading('Edit Adult', __('Edit Adult'));
 
             $row = $form->addRow();
                 $row->addLabel('adult', __('Adult\'s Name'));

@@ -18,31 +18,36 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 //Gibbon system-wide includes
-include './gibbon.php';
-$gibbon->session->set('sidebarExtra', '');
+require_once './gibbon.php';
+
+// Setup the Page and Session objects
+$page = $container->get('page');
+$session->set('sidebarExtra', '');
 
 //Check to see if system settings are set from databases
-if (empty($gibbon->session->get('systemSettingsSet'))) {
+if (empty($session->get('systemSettingsSet'))) {
     getSystemSettings($guid, $connection2);
 }
 
-if (empty($gibbon->session->get('systemSettingsSet')) || empty($gibbon->session->get('gibbonPersonID'))) {
+if (empty($session->get('systemSettingsSet')) || empty($session->get('gibbonPersonID'))) {
     header("HTTP/1.1 403 Forbidden");
     exit;
 }
 
-$gibbon->session->set('address', $_GET['q'] ?? '');
-$gibbon->session->set('module', getModuleName($gibbon->session->get('address')));
-$gibbon->session->set('action', getActionName($gibbon->session->get('address')));
+$address = $page->getAddress();
 
-if (empty($gibbon->session->get('address')) || strstr($gibbon->session->get('address'), '..') != false) {
+if (empty($address) || $page->isAddressValid($address, true) == false || stripos($address, 'modules') === false) {
     header("HTTP/1.1 403 Forbidden");
     exit;
+}
+
+$session->set('address', $address);
+$session->set('module', getModuleName($address));
+$session->set('action', getActionName($address));
+
+if (is_file('./'.$address)) {
+    include './'.$address;
 } else {
-    if (is_file('./'.$gibbon->session->get('address'))) {
-        include './'.$gibbon->session->get('address');
-    } else {
-        header("HTTP/1.1 404 Not Found");
-        exit;
-    }
+    header("HTTP/1.1 404 Not Found");
+    exit;
 }

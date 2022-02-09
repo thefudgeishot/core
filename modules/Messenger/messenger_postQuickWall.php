@@ -35,9 +35,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
     }
     $page->return->setEditLink($editLink);
 
-    echo "<div class='warning'>";
-    echo __('This page allows you to quick post a message wall entry to all users, without needing to set a range of options, making it a quick way to post to the Message Wall.');
-	echo '</div>';
+    $page->addMessage(__('This page allows you to quick post a message wall entry to all users, without needing to set a range of options, making it a quick way to post to the Message Wall.'));
 
 	$form = Form::create('postQuickWall', $session->get('absoluteURL').'/modules/'.$session->get('module').'/messenger_postQuickWallProcess.php?address='.$_GET['q']);
 
@@ -50,7 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
 		$form->addHiddenValue("roleCategories[$key]", $category);
 	}
 
-	$form->addRow()->addHeading(__('Delivery Mode'));
+	$form->addRow()->addHeading('Delivery Mode', __('Delivery Mode'));
 
 	$row = $form->addRow();
 		$row->addLabel('messageWallLabel', __('Message Wall'))->description(__('Place this message on user\'s message wall?'));
@@ -69,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
 		$col->addDate('date2');
 		$col->addDate('date3');
 
-	$form->addRow()->addHeading(__('Message Details'));
+	$form->addRow()->addHeading('Message Details', __('Message Details'));
 
     $row = $form->addRow();
         $row->addLabel('subject', __('Subject'));

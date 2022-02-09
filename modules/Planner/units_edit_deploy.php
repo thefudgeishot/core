@@ -166,7 +166,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_deploy.
         $table->addColumn('period', __('TT Period/Time'))
             ->notSortable()
             ->format(function($lesson) {
-                return $lesson['period'].'<br/>'.Format::timeRange($lesson['timeStart'], $lesson['timeEnd']);
+                return $lesson['period'].'<br/>'.Format::timeRange($lesson['timeStart'], $lesson['timeEnd']).'<br>'.($lesson['spaceName'] ?? '');
             });
 
         $table->addColumn('lesson', __('Planned Lesson'))
@@ -265,7 +265,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_deploy.
             $col->addContent('<div class="sortableArea py-2 mt-16">'.$content.'</div>');
         }
 
-        $form->addRow()->addHeading(__('Access'));
+        $form->addRow()->addHeading('Access', __('Access'));
 
         $row = $form->addRow();
             $row->addLabel('viewableStudents', __('Viewable to Students'));

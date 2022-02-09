@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Module\Planner\Forms\PlannerFormFactory;
 use Gibbon\Services\Format;
@@ -37,8 +38,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
         //Set variables
         $today = date('Y-m-d');
 
-        $homeworkNameSingular = getSettingByScope($connection2, 'Planner', 'homeworkNameSingular');
-        $homeworkNamePlural = getSettingByScope($connection2, 'Planner', 'homeworkNamePlural');
+        $settingGateway = $container->get(SettingGateway::class);
+        $homeworkNameSingular = $settingGateway->getSettingByScope('Planner', 'homeworkNameSingular');
+        $homeworkNamePlural = $settingGateway->getSettingByScope('Planner', 'homeworkNamePlural');
 
         //Proceed!
         //Get viewBy, date and class variables
@@ -64,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
             if ($date == '') {
                 $date = date('Y-m-d');
             }
-            list($dateYear, $dateMonth, $dateDay) = explode('-', $date);
+            [$dateYear, $dateMonth, $dateDay] = explode('-', $date);
             $dateStamp = mktime(0, 0, 0, $dateMonth, $dateDay, $dateYear);
             $params += [
                 'viewBy' => 'date',
@@ -85,10 +87,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
         }
         $paramsVar = '&' . http_build_query($params); // for backward compatibile uses below (should be get rid of)
 
-        list($todayYear, $todayMonth, $todayDay) = explode('-', $today);
+        [$todayYear, $todayMonth, $todayDay] = explode('-', $today);
         $todayStamp = mktime(12, 0, 0, $todayMonth, $todayDay, $todayYear);
 
-        //Check if school year specified
+        //Check if gibbonPlannerEntryID and gibbonCourseClassID specified
         $gibbonCourseClassID = null;
         if (isset($_GET['gibbonCourseClassID'])) {
             $gibbonCourseClassID = $_GET['gibbonCourseClassID'];
@@ -172,7 +174,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                 $form->addHiddenValue('address', $session->get('address'));
 
                 //BASIC INFORMATION
-                $form->addRow()->addHeading(__('Basic Information'));
+                $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
                 if ($highestAction == 'Lesson Planner_viewEditAllClasses') {
                     $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
@@ -214,15 +216,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
 
 
                 //LESSON
-                $form->addRow()->addHeading(__('Lesson Content'));
+                $form->addRow()->addHeading('Lesson Content', __('Lesson Content'));
 
-                $description = getSettingByScope($connection2, 'Planner', 'lessonDetailsTemplate') ;
+                $description = $settingGateway->getSettingByScope('Planner', 'lessonDetailsTemplate') ;
                 $row = $form->addRow();
                     $column = $row->addColumn();
                     $column->addLabel('description', __('Lesson Details'));
                     $column->addEditor('description', $guid)->setRows(25)->showMedia()->setValue($description);
 
-                $teachersNotes = getSettingByScope($connection2, 'Planner', 'teachersNotesTemplate');
+                $teachersNotes = $settingGateway->getSettingByScope('Planner', 'teachersNotesTemplate');
                 $row = $form->addRow();
                     $column = $row->addColumn();
                     $column->addLabel('teachersNotes', __('Teacher\'s Notes'));
@@ -230,7 +232,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
 
                 //SMART BLOCKS
                 if (!empty($values['gibbonUnitID'])) {
-                    $form->addRow()->addHeading(__('Smart Blocks'));
+                    $form->addRow()->addHeading('Smart Blocks', __('Smart Blocks'));
 
                     $form->addRow()->addContent("<div class='float-right'><a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/units_edit_working.php&gibbonCourseClassID=$gibbonCourseClassID&gibbonCourseID=".$values['gibbonCourseID'].'&gibbonUnitID='.$values['gibbonUnitID'].'&gibbonSchoolYearID='.$session->get('gibbonSchoolYearID')."&gibbonUnitClassID=$gibbonUnitClassID'>".__('Edit Unit').'</a></div>');
 
@@ -255,7 +257,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                 }
 
                 //HOMEWORK
-                $form->addRow()->addHeading(__($homeworkNameSingular));
+                $form->addRow()->addHeading($homeworkNameSingular, __($homeworkNameSingular));
 
                 $form->toggleVisibilityByClass('homework')->onRadio('homework')->when('Y');
                 $row = $form->addRow();
@@ -323,13 +325,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
 
                 // OUTCOMES
                 if ($viewBy == 'date') {
-                    $form->addRow()->addHeading(__('Outcomes'));
+                    $form->addRow()->addHeading('Outcomes', __('Outcomes'));
                     $form->addRow()->addAlert(__('Outcomes cannot be set when viewing the Planner by date. Use the "Choose A Class" dropdown in the sidebar to switch to a class. Make sure to save your changes first.'), 'warning');
                 } else {
-                    $form->addRow()->addHeading(__('Outcomes'));
+                    $form->addRow()->addHeading('Outcomes', __('Outcomes'));
                     $form->addRow()->addContent(__('Link this lesson to outcomes (defined in the Manage Outcomes section of the Planner), and track which outcomes are being met in which lessons.'));
 
-                    $allowOutcomeEditing = getSettingByScope($connection2, 'Planner', 'allowOutcomeEditing');
+                    $allowOutcomeEditing = $settingGateway->getSettingByScope('Planner', 'allowOutcomeEditing');
 
                     $row = $form->addRow();
                         $customBlocks = $row->addPlannerOutcomeBlocks('outcome', $gibbon->session, $gibbonYearGroupIDList, $gibbonDepartmentID, $allowOutcomeEditing);
@@ -350,7 +352,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                 }
 
                 //Access
-                $form->addRow()->addHeading(__('Access'));
+                $form->addRow()->addHeading('Access', __('Access'));
 
                 $row = $form->addRow();
                     $row->addLabel('viewableStudents', __('Viewable to Students'));
@@ -361,7 +363,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                     $row->addYesNo('viewableParents')->required();
 
                 //Guests
-                $form->addRow()->addHeading(__('Current Guests'));
+                $form->addRow()->addHeading('Current Guests', __('Current Guests'));
 
                 $data = array('gibbonPlannerEntryID' => $gibbonPlannerEntryID);
                 $sql = "SELECT title, preferredName, surname, category, gibbonPlannerEntryGuest.* FROM gibbonPlannerEntryGuest JOIN gibbonPerson ON (gibbonPlannerEntryGuest.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonRole ON (gibbonPerson.gibbonRoleIDPrimary=gibbonRole.gibbonRoleID) WHERE gibbonPlannerEntryID=:gibbonPlannerEntryID ORDER BY surname, preferredName";
@@ -388,7 +390,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                     }
                 }
 
-                $form->addRow()->addHeading(__('New Guests'));
+                $form->addRow()->addHeading('New Guests', __('New Guests'));
 
                 $row = $form->addRow();
                     $row->addLabel('guests', __('Guest List'));

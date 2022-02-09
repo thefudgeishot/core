@@ -87,11 +87,13 @@ class CustomField extends Input
                 break;
 
             case 'image':
-                $this->customField = $this->factory->createFileUpload($name.'File')->accepts('.jpg,.jpeg,.gif,.png,.svg');
+                $fieldName = stripos($name, '[') !== false ?  $name : $name.'File';
+                $this->customField = $this->factory->createFileUpload($fieldName)->accepts('.jpg,.jpeg,.gif,.png,.svg');
                 break;
 
             case 'file':
-                $this->customField = $this->factory->createFileUpload($name.'File');
+                $fieldName = stripos($name, '[') !== false ?  $name : $name.'File';
+                $this->customField = $this->factory->createFileUpload($fieldName);
                 if (!empty($options)) {
                     $this->customField->accepts($options);
                 }
@@ -106,16 +108,16 @@ class CustomField extends Input
                 }
                 break;
 
-            case 'checkboxes': 
+            case 'checkboxes':
                 $this->customField = $this->factory->createCheckbox($name);
                 $options = $this->parseOptions($options);
-                
+
                 if (!empty($options)) {
                     $this->customField->fromArray($options)->alignRight();
                 }
                 break;
 
-            case 'radio': 
+            case 'radio':
                 $this->customField = $this->factory->createRadio($name);
                 if (!empty($options) && is_string($options)) {
                     $this->customField->fromString($options);
@@ -167,7 +169,7 @@ class CustomField extends Input
      */
     public function setValue($value = '')
     {
-        global $guid;
+        global $session;
 
         switch($this->type) {
 
@@ -187,7 +189,7 @@ class CustomField extends Input
 
             case 'image':
             case 'file':
-                $this->customField->setAttachment($this->name, $_SESSION[$guid]['absoluteURL'], $value);
+                $this->customField->setAttachment($this->name, $session->get('absoluteURL'), $value);
                 break;
 
             default:
@@ -234,7 +236,7 @@ class CustomField extends Input
 
         $optionArray = array_map('trim', explode(',', $options));
         $options = [];
-        
+
         // Enable [] around an option to create optgroups
         for ($i = 0; $i < count($optionArray); $i++) {
             $option = $optionArray[$i];

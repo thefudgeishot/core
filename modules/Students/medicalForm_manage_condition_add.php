@@ -48,7 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
     }
     $page->return->setEditLink($editLink);
 
-    //Check if school year specified
+    //Check if gibbonPersonMedicalID specified
     $gibbonPersonMedicalID = $_GET['gibbonPersonMedicalID'];
     $search = $_GET['search'];
     if ($gibbonPersonMedicalID == '') {
@@ -75,7 +75,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
             $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonPersonMedicalID', $gibbonPersonMedicalID);
 
-            $form->addRow()->addHeading(__('General Information'));
+            $form->addRow()->addHeading('General Information', __('General Information'));
 
             $row = $form->addRow();
                 $row->addLabel('personName', __('Student'));

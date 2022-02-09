@@ -29,7 +29,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonStringID specified
     if ($gibbonStringID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
@@ -62,7 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
             }
 
             //Update string list in session & clear cache to force reload
-            $gibbon->locale->setStringReplacementList($pdo, true);
+            $gibbon->locale->setStringReplacementList($session, $pdo, true);
             $session->set('pageLoads', null);
 
             $URLDelete = $URLDelete.'&return=success0';

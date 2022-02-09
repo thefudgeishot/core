@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
-use Gibbon\Module\Finance\Forms\FinanceFormFactory;
 use Gibbon\Services\Format;
+use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Module\Finance\Forms\FinanceFormFactory;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -29,14 +31,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    //Check if school year specified
-    $gibbonSchoolYearID = isset($_GET['gibbonSchoolYearID'])? $_GET['gibbonSchoolYearID'] : '';
-    $gibbonFinanceInvoiceID = isset($_GET['gibbonFinanceInvoiceID'])? $_GET['gibbonFinanceInvoiceID'] : '';
-    $status = isset($_GET['status'])? $_GET['status'] : '';
-    $gibbonFinanceInvoiceeID = isset($_GET['gibbonFinanceInvoiceeID'])? $_GET['gibbonFinanceInvoiceeID'] : '';
-    $monthOfIssue = isset($_GET['monthOfIssue'])? $_GET['monthOfIssue'] : '';
-    $gibbonFinanceBillingScheduleID = isset($_GET['gibbonFinanceBillingScheduleID'])? $_GET['gibbonFinanceBillingScheduleID'] : '';
-    $gibbonFinanceFeeCategoryID = isset($_GET['gibbonFinanceFeeCategoryID'])? $_GET['gibbonFinanceFeeCategoryID'] : '';
+    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+    $gibbonFinanceInvoiceID = $_GET['gibbonFinanceInvoiceID'] ?? '';
+    $status = $_GET['status'] ?? '';
+    $gibbonFinanceInvoiceeID = $_GET['gibbonFinanceInvoiceeID'] ?? '';
+    $monthOfIssue = $_GET['monthOfIssue'] ?? '';
+    $gibbonFinanceBillingScheduleID = $_GET['gibbonFinanceBillingScheduleID'] ?? '';
+    $gibbonFinanceFeeCategoryID = $_GET['gibbonFinanceFeeCategoryID'] ?? '';
 
     $urlParams = compact('gibbonSchoolYearID', 'status', 'gibbonFinanceInvoiceeID', 'monthOfIssue', 'gibbonFinanceBillingScheduleID', 'gibbonFinanceFeeCategoryID');
 
@@ -50,6 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
 
     $page->return->addReturns(['error4' => 'Some aspects of your request failed, but others were successful. Because of the errors, the system did not attempt to send any requested emails.']);
 
+    //Check if gibbonFinanceInvoiceID and gibbonSchoolYearID specified
     if ($gibbonFinanceInvoiceID == '' or $gibbonSchoolYearID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
@@ -74,9 +76,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
             $values = $result->fetch();
 
             if ($status != '' or $gibbonFinanceInvoiceeID != '' or $monthOfIssue != '' or $gibbonFinanceBillingScheduleID != '') {
-                echo "<div class='linkTop'>";
-                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/invoices_manage.php&".http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
-                echo '</div>';
+                $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Finance', 'invoices_manage.php')->withQueryParams($urlParams));
 			}
 
 			$form = Form::create('invoice', $session->get('absoluteURL').'/modules/'.$session->get('module').'/invoices_manage_issueProcess.php?'.http_build_query($urlParams));
@@ -85,7 +85,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
 			$form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonFinanceInvoiceID', $gibbonFinanceInvoiceID);
 
-			$form->addRow()->addHeading(__('Basic Information'));
+			$form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
 			$row = $form->addRow();
                 $row->addLabel('schoolYear', __('School Year'));
@@ -122,7 +122,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
                 $row->addLabel('notes', __('Notes'))->description(__('Notes will be displayed on the final invoice and receipt.'));
 				$row->addTextArea('notes')->setRows(5);
 
-			$form->addRow()->addHeading(__('Fees'));
+			$form->addRow()->addHeading('Fees', __('Fees'));
 
 			$totalFee = getInvoiceTotalFee($pdo, $gibbonFinanceInvoiceID, $values['status']);
 			$row = $form->addRow();
@@ -135,9 +135,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
 				$row->addLabel('invoiceToText', __('Invoice To'));
 				$row->addTextField('invoiceToText')->required()->readonly()->setValue(__($values['invoiceTo']));
 
-			$form->addRow()->addHeading(__('Email Invoice'));
+			$form->addRow()->addHeading('Email Invoice', __('Email Invoice'));
 
-			$email = getSettingByScope($connection2, 'Finance', 'email');
+			$email = $container->get(SettingGateway::class)->getSettingByScope('Finance', 'email');
 			$form->addHiddenValue('email', $email);
 			if (empty($email)) {
 				$form->addRow()->addAlert(__('An outgoing email address has not been set up under Invoice & Receipt Settings, and so no emails can be sent.'), 'error');

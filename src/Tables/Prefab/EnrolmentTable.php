@@ -36,8 +36,25 @@ use Gibbon\Domain\Students\StudentReportGateway;
  */
 class EnrolmentTable implements OutputableInterface
 {
+    /**
+     * @var \Gibbon\Contract\Services\Session
+     */
     protected $session;
+
+    /**
+     * @var \Gibbon\View\View
+     */
+    protected $view;
+
+    /**
+     * @var \Gibbon\Domain\Students\StudentGateway
+     */
     protected $studentGateway;
+
+    /**
+     * @var \Gibbon\Domain\Students\StudentReportGateway
+     */
+    protected $studentReportGateway;
 
     public function __construct(Session $session, View $view, StudentGateway $studentGateway, StudentReportGateway $studentReportGateway)
     {
@@ -63,7 +80,7 @@ class EnrolmentTable implements OutputableInterface
             'nextEnrolment' => $this->studentGateway->getStudentEnrolmentCount($gibbonSchoolYearID, date('Y-m-d', strtotime('today + 60 days'))),
         ]);
 
-        
+
         // CHART
         $chartData = $this->studentReportGateway->selectStudentCountByYearGroup($gibbonSchoolYearID)->fetchAll();
 
@@ -74,21 +91,23 @@ class EnrolmentTable implements OutputableInterface
             $chart->setLegend(false);
             $chart->setColors(['rgba(54, 162, 235, 1.0)']);
             $chart->setOptions([
-                'height' => '50',
-                'tooltips' => [
+                'height' => '20vh',
+                'tooltip' => [
                     'mode' => 'x-axis',
                 ],
+                'animation' => false,
                 'scales' => [
-                    'yAxes' => [[
+                    'y' => [
                         'display' => false,
-                    ]],
-                    'xAxes' => [[
+                        'beginAtZero' => true,
+                    ],
+                    'x' => [
                         'display'   => true,
                         'gridLines' => ['display' => false],
-                    ]],
+                    ],
                 ],
             ]);
-            
+
             $chart->addDataset('total', __('Total Students'))
                 ->setData(array_column($chartData, 'studentCount'));
 
@@ -98,7 +117,8 @@ class EnrolmentTable implements OutputableInterface
 
         // CRITERIA
         $criteria = $this->studentReportGateway->newQueryCriteria()
-            ->sortBy(['dateStart', 'formGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName'])
+            ->sortBy('dateStart', 'DESC')
+            ->sortBy(['formGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName'])
             ->fromPOST();
 
         $students = $this->studentReportGateway->queryStudentStatusBySchoolYear($criteria, $gibbonSchoolYearID, 'Full', date('Y-m-d', strtotime('today - 60 days')), date('Y-m-d', strtotime('today + 60 days')), false);

@@ -19,8 +19,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Module\Reports\Domain\ReportPrototypeSectionGateway;
 use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Data\Validator;
 
 require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Reports/templates_assets.php';
 
@@ -57,6 +60,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/templates_assets_c
     }
 
     if (copy($sourcePath, $destinationPath)) {
+        chmod($destinationPath, 0755);
         $data['type'] = 'Additional';
         $data['templateFile'] = $templateFileDestination;
         $duplicated = $prototypeGateway->insert($data);

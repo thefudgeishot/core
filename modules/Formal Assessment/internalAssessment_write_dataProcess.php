@@ -18,8 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
 $gibbonInternalAssessmentColumnID = $_GET['gibbonInternalAssessmentColumnID'] ?? '';
@@ -34,7 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
         header("Location: {$URL}");
     } else {
         //Proceed!
-        //Check if school year specified
+        //Check if gibbonInternalAssessmentColumnID and gibbonCourseClassID specified
         if ($gibbonInternalAssessmentColumnID == '' or $gibbonCourseClassID == '') {
             $URL .= '&return=error1';
             header("Location: {$URL}");

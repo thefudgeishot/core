@@ -2,21 +2,19 @@
 /*
 Gibbon, Flexible & Open School System
 Copyright (C) 2010, Ross Parker
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
-
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Services\Format;
 use Gibbon\Comms\NotificationEvent;
 use Gibbon\Comms\NotificationSender;
@@ -24,14 +22,18 @@ use Gibbon\Domain\System\LogGateway;
 use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\PersonalDocumentHandler;
 use Gibbon\Domain\System\NotificationGateway;
+use Gibbon\Domain\User\UserStatusLogGateway;
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 //Module includes
 include './moduleFunctions.php';
 
 $logGateway = $container->get(LogGateway::class);
-$gibbonPersonID = $_GET['gibbonPersonID'];
+$gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/user_manage_edit.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search'];
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edit.php') == false) {
@@ -39,7 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonPersonID specified
     if ($gibbonPersonID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
@@ -171,25 +173,25 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
             $address2District = $_POST['address2District'] ?? '';
             $address2Country = $_POST['address2Country'] ?? '';
             $phone1Type = $_POST['phone1Type'] ?? '';
-            if ($_POST['phone1'] != '' and $phone1Type == '') {
+            if ($_POST['phone1'] != '' && $phone1Type == '') {
                 $phone1Type = 'Other';
             }
             $phone1CountryCode = $_POST['phone1CountryCode'] ?? '';
             $phone1 = preg_replace('/[^0-9+]/', '', $_POST['phone1'] ?? '');
             $phone2Type = $_POST['phone2Type'] ?? '';
-            if ($_POST['phone2'] != '' and $phone2Type == '') {
+            if ($_POST['phone2'] != '' && $phone2Type == '') {
                 $phone2Type = 'Other';
             }
             $phone2CountryCode = $_POST['phone2CountryCode'] ?? '';
             $phone2 = preg_replace('/[^0-9+]/', '', $_POST['phone2'] ?? '');
             $phone3Type = $_POST['phone3Type'];
-            if ($_POST['phone3'] != '' and $phone3Type == '') {
+            if ($_POST['phone3'] != '' && $phone3Type == '') {
                 $phone3Type = 'Other';
             }
             $phone3CountryCode = $_POST['phone3CountryCode'] ?? '';
             $phone3 = preg_replace('/[^0-9+]/', '', $_POST['phone3'] ?? '');
             $phone4Type = $_POST['phone4Type'];
-            if ($_POST['phone4'] != '' and $phone4Type == '') {
+            if ($_POST['phone4'] != '' && $phone4Type == '') {
                 $phone4Type = 'Other';
             }
             $phone4CountryCode = $_POST['phone4CountryCode'] ?? '';
@@ -235,7 +237,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
             $dayType = $_POST['dayType'] ?? null;
 
             //Validate Inputs
-            if ($surname == '' or $firstName == '' or $preferredName == '' or $officialName == '' or $gender == '' or $username == '' or $status == '' or $gibbonRoleIDPrimary == '') {
+            if ($surname == '' || $firstName == '' || $preferredName == '' || $officialName == '' || $gender == '' || $username == '' || $status == '' || $gibbonRoleIDPrimary == '') {
                 $URL .= '&return=error3';
                 header("Location: {$URL}");
             } else {
@@ -277,13 +279,62 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                                 $imageFail = true;
                             } else {
                                 //Check image sizes
-                                $size1 = getimagesize($path.'/'.$attachment1);
-                                $width1 = $size1[0];
-                                $height1 = $size1[1];
-                                $aspect1 = $height1 / $width1;
-                                if ($width1 > 360 or $height1 > 480 or $aspect1 < 1.2 or $aspect1 > 1.4) {
-                                    $attachment1 = '';
-                                    $imageFail = true;
+                                if (function_exists('getimagesize') && function_exists('imagecreatetruecolor')) {
+                                    $imageSize = getimagesize($path.'/'.$attachment1);
+                                    $width = $imageSize[0] ?? '';
+                                    $height = $imageSize[1] ?? '';
+                                    $aspect = $height / $width;
+
+                                    if ($width > 360 || $height > 480 || $aspect < 1.2 || $aspect > 1.4) {
+                                        $src_x = $src_y = $dst_x = $dst_y = 0;
+                                        $src_y = 0;
+                                        $src_w = $width;
+                                        $src_h = $height;
+                                        $maxWidth = 360;
+                                        $maxHeight = 480;
+
+                                        // New crop if needed
+                                        if ($aspect < 1.2) {
+                                            $src_w = $height / 1.2;
+                                            $src_x = ($width - $src_w) / 2;
+                                        }
+                                        else if ($aspect > 1.4) {
+                                            $src_h = $width * 1.4;
+                                            $src_y = ($height - $src_h) / 2;
+                                        }
+
+                                        $dst_w = $src_w;
+                                        $dst_h = $src_h;
+
+                                        // New compressed image if needed
+                                        if ($src_w > $maxWidth) {
+                                            $new_ratio = $maxWidth / $src_w;
+                                            $dst_w = $maxWidth;
+                                            $dst_h = $src_h * $new_ratio;
+                                        }
+                                        if ($src_h > $maxHeight) {
+                                            $new_ratio = $maxHeight / $src_h;
+                                            $dst_h = $maxHeight;
+                                            $dst_w = $src_w * $new_ratio;
+                                        }
+
+                                        $imagePath =  $path.'/'.$attachment1;
+    
+                                        // Resampling the image
+                                        if (!empty($imageSize) && file_exists($imagePath)) {
+                                            $image_p = imagecreatetruecolor($dst_w, $dst_h);
+                                            $image = imagecreatefromjpeg($imagePath);
+
+                                            imagecopyresampled($image_p, $image,
+                                                            $dst_x, $dst_y,
+                                                            $src_x, $src_y,
+                                                            $dst_w, $dst_h,
+                                                            $src_w, $src_h);
+
+                                            imagedestroy($image);
+                                            imagejpeg($image_p, $imagePath, 100);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -315,8 +366,15 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                             exit();
                         }
 
+                        if ($row['status'] != $status) {
+                            $statusReason = $_POST['statusReason'] ?? '';
+
+                            $userStatusLogGateway = $container->get(UserStatusLogGateway::class);
+                            $userStatusLogGateway->insert(['gibbonPersonID' => $gibbonPersonID, 'statusOld' => $row['status'], 'statusNew' => $status, 'reason' => $statusReason]);
+                        }
+
                         //Deal with change to privacy settings
-                        if ($student and getSettingByScope($connection2, 'User Admin', 'privacy') == 'Y') {
+                        if ($student && $container->get(SettingGateway::class)->getSettingByScope('User Admin', 'privacy') == 'Y') {
                             if ($privacy_old != $privacy) {
 
                                 //Notify tutor
@@ -360,13 +418,13 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                                         $notificationText = sprintf(__('Your tutee, %1$s, has had their privacy settings altered.'), $studentName).'<br/><br/>';
                                         $notificationText .= $privacyText;
 
-                                        if ($rowDetail['gibbonPersonIDTutor'] != null and $rowDetail['gibbonPersonIDTutor'] != $session->get('gibbonPersonID')) {
+                                        if ($rowDetail['gibbonPersonIDTutor'] != null && $rowDetail['gibbonPersonIDTutor'] != $session->get('gibbonPersonID')) {
                                             $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor'], $notificationText, 'Students', $actionLink);
                                         }
-                                        if ($rowDetail['gibbonPersonIDTutor2'] != null and $rowDetail['gibbonPersonIDTutor2'] != $session->get('gibbonPersonID')) {
+                                        if ($rowDetail['gibbonPersonIDTutor2'] != null && $rowDetail['gibbonPersonIDTutor2'] != $session->get('gibbonPersonID')) {
                                             $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor2'], $notificationText, 'Students', $actionLink);
                                         }
-                                        if ($rowDetail['gibbonPersonIDTutor3'] != null and $rowDetail['gibbonPersonIDTutor3'] != $session->get('gibbonPersonID')) {
+                                        if ($rowDetail['gibbonPersonIDTutor3'] != null && $rowDetail['gibbonPersonIDTutor3'] != $session->get('gibbonPersonID')) {
                                             $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor3'], $notificationText, 'Students', $actionLink);
                                         }
                                     }
@@ -404,18 +462,17 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                                 }
                             }
                         }
-                        if ($partialFail == true) {
+                        if ($partialFail || $personalDocumentFail) {
                             $URL .= '&return=warning1';
                             header("Location: {$URL}");
+                        } else if ($imageFail) {
+                            $URL .= '&return=warning3';
+                            header("Location: {$URL}");
                         } else {
-                            if ($personalDocumentFail) {
-                                $URL .= '&return=warning1';
-                                header("Location: {$URL}");
-                            } else {
-                                $URL .= '&return=success0';
-                                header("Location: {$URL}");
-                            }
+                            $URL .= '&return=success0';
+                            header("Location: {$URL}");
                         }
+
                     }
                 }
             }

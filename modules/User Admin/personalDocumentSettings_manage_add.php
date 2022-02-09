@@ -32,18 +32,18 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/personalDocumen
 
     $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/User Admin/personalDocumentSettings_manage_edit.php&gibbonPersonalDocumentTypeID='.$_GET['editID'];
+        $editLink = $session->get('absoluteURL').'/index.php?q=/modules/User Admin/personalDocumentSettings_manage_edit.php&gibbonPersonalDocumentTypeID='.$_GET['editID'];
     }
     $page->return->setEditLink($editLink);
 
     $personalDocumentHandler = $container->get(PersonalDocumentHandler::class);
 
-    $form = Form::create('personalDocumentType', $_SESSION[$guid]['absoluteURL'].'/modules/User Admin/personalDocumentSettings_manage_addProcess.php');
+    $form = Form::create('personalDocumentType', $session->get('absoluteURL').'/modules/User Admin/personalDocumentSettings_manage_addProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('Basic Details'));
+    $form->addRow()->addHeading('Basic Details', __('Basic Details'));
 
     $row = $form->addRow();
         $row->addLabel('name', __('Document Name'))->description(__('Must be unique.'));
@@ -65,7 +65,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/personalDocumen
         $row->addLabel('sequenceNumber', __('Sequence Number'));
         $row->addSequenceNumber('sequenceNumber', 'gibbonPersonalDocumentType')->maxLength(3);
 
-    $form->addRow()->addHeading(__('Configure'));
+    $form->addRow()->addHeading('Configure', __('Configure'));
 
     $row = $form->addRow();
         $row->addLabel('document', __('Type'));
@@ -75,7 +75,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/personalDocumen
         $row->addLabel('fields', __('Fields'));
         $row->addCheckbox('fields')->fromArray($personalDocumentHandler->getFields());
 
-    $form->addRow()->addHeading(__('Visibility'));
+    $form->addRow()->addHeading('Visibility', __('Visibility'));
 
     $activePersonOptions = array(
         'activePersonStudent' => __('Student'),

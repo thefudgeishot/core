@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
@@ -71,57 +72,59 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
 
     $form->addHiddenValue('address', $session->get('address'));
 
-    $row = $form->addRow()->addHeading(__('Field Values'));
+    $row = $form->addRow()->addHeading('Field Values', __('Field Values'));
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'nationality', true);
+    $settingGateway = $container->get(SettingGateway::class);
+
+    $setting = $settingGateway->getSettingByScope('User Admin', 'nationality', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'ethnicity', true);
+    $setting = $settingGateway->getSettingByScope('User Admin', 'ethnicity', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'religions', true);
+    $setting = $settingGateway->getSettingByScope('User Admin', 'religions', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'departureReasons', true);
+    $setting = $settingGateway->getSettingByScope('User Admin', 'departureReasons', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $row = $form->addRow()->addHeading(__('Privacy Options'));
+    $row = $form->addRow()->addHeading('Privacy Options', __('Privacy Options'));
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'privacy', true);
+    $setting = $settingGateway->getSettingByScope('User Admin', 'privacy', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addYesNo($setting['name'])->selected($setting['value'])->required();
 
     $form->toggleVisibilityByClass('privacy')->onSelect($setting['name'])->when('Y');
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'privacyBlurb', true);
+    $setting = $settingGateway->getSettingByScope('User Admin', 'privacyBlurb', true);
     $row = $form->addRow()->addClass('privacy');
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'privacyOptions', true);
+    $setting = $settingGateway->getSettingByScope('User Admin', 'privacyOptions', true);
     $row = $form->addRow()->addClass('privacy');
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $row = $form->addRow()->addHeading(__('User Data Options'));
+    $row = $form->addRow()->addHeading('User Data Options', __('User Data Options'));
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'uniqueEmailAddress', true);
+    $setting = $settingGateway->getSettingByScope('User Admin', 'uniqueEmailAddress', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addYesNo($setting['name'])->selected($setting['value']);
 
-    $row = $form->addRow()->addHeading(__('User Interface Options'));
+    $row = $form->addRow()->addHeading('User Interface Options', __('User Interface Options'));
 
-    $setting = getSettingByScope($connection2, 'User Admin', 'personalBackground', true);
+    $setting = $settingGateway->getSettingByScope('User Admin', 'personalBackground', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addYesNo($setting['name'])->selected($setting['value'])->required();

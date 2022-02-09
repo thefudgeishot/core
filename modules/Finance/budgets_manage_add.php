@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
@@ -44,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_add
 
     $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('General Settings'));
+    $form->addRow()->addHeading('General Settings', __('General Settings'));
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
@@ -58,7 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_add
         $row->addLabel('active', __('Active'));
         $row->addYesNo('active')->required();
 
-    $categories = getSettingByScope($connection2, 'Finance', 'budgetCategories');
+    $categories = $container->get(SettingGateway::class)->getSettingByScope('Finance', 'budgetCategories');
     if (empty($categories)) {
         $categories = 'Other';
     }
@@ -66,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_add
         $row->addLabel('category', __('Category'));
         $row->addSelect('category')->fromString($categories)->placeholder()->required();
 
-    $form->addRow()->addHeading(__('Staff'));
+    $form->addRow()->addHeading('Staff', __('Staff'));
 
     $row = $form->addRow();
         $row->addLabel('staff', __('Staff'));

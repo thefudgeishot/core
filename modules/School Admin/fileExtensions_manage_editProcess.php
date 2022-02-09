@@ -16,8 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $gibbonFileExtensionID = $_GET['gibbonFileExtensionID'] ?? '';
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/fileExtensions_manage_edit.php&gibbonFileExtensionID='.$gibbonFileExtensionID;
@@ -27,7 +30,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtension
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonFileExtensionID specified
     if ($gibbonFileExtensionID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");

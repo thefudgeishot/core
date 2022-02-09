@@ -18,8 +18,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Domain\System\CustomFieldGateway;
+use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $gibbonCustomFieldID = $_GET['gibbonCustomFieldID'] ?? '';
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/customFields_edit.php&gibbonCustomFieldID=$gibbonCustomFieldID";
@@ -29,7 +33,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/customFields_
     header("Location: {$URL}");
 } else {
     // Proceed!
-    $enablePublicRegistration = getSettingByScope($connection2, 'User Admin', 'enablePublicRegistration');
+    $enablePublicRegistration = $container->get(SettingGateway::class)->getSettingByScope('User Admin', 'enablePublicRegistration');
     $customFieldGateway = $container->get(CustomFieldGateway::class);
     
     $data = [

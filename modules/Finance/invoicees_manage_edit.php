@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
@@ -38,9 +39,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoicees_manage_e
         ->add(__('Edit Invoicee'));
 
     if ($search != '' or $allUsers == 'on') {
-        echo "<div class='linkTop'>";
-        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Finance/invoicees_manage.php&search='.$search.'&allUsers='.$allUsers."'>".__('Back to Search Results').'</a>';
-        echo '</div>';
+        $params = [
+            "search" => $search,
+            "allUsers" => $allUsers,
+        ];
+        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Finance', 'invoicees_manage.php')->withQueryParams($params));
     }
 
     //Check if invoicee is specified
@@ -72,7 +75,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoicees_manage_e
             $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('existing', isset($values['gibbonFinanceInvoiceeUpdateID'])? $values['gibbonFinanceInvoiceeUpdateID'] : 'N');
 
-            $form->addRow()->addHeading(__('Invoice To'));
+            $form->addRow()->addHeading('Invoice To', __('Invoice To'));
 
             $form->addRow()->addContent(__('If you choose family, future invoices will be sent according to your family\'s contact preferences, which can be changed at a later date by contacting the school. For example you may wish both parents to receive the invoice, or only one. Alternatively, if you choose Company, you can choose for all or only some fees to be covered by the specified company.'))->wrap('<p>', '</p>');
 

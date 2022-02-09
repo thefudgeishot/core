@@ -16,8 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $gibbonApplicationFormID = $_POST['gibbonApplicationFormID'] ?? '';
 $gibbonSchoolYearID = $_POST['gibbonSchoolYearID'] ?? '';
@@ -30,7 +33,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonApplicationFormID and gibbonSchoolYearID specified
 
     if ($gibbonApplicationFormID == '' or $gibbonSchoolYearID == '') {
         $URL .= '&return=error1';

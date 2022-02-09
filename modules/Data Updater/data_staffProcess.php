@@ -22,12 +22,16 @@ use Gibbon\Comms\NotificationEvent;
 use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Domain\Staff\StaffGateway;
 use Gibbon\Domain\DataUpdater\StaffUpdateGateway;
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
 
-$gibbonStaffID = $_GET['gibbonStaffID'];
-$gibbonPersonID = $_POST['gibbonPersonID'];
-$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/data_staff.php&gibbonStaffID=$gibbonStaffID&gibbonPersonID=$gibbonPersonID";
+$_POST = $container->get(Validator::class)->sanitize($_POST);
+
+$gibbonStaffID = $_GET['gibbonStaffID'] ?? '';
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+$address = $_POST['address'] ?? '';
+$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($address)."/data_staff.php&gibbonStaffID=$gibbonStaffID&gibbonPersonID=$gibbonPersonID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_staff.php') == false) {
     $URL .= '&return=error0';

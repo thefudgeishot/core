@@ -83,7 +83,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/staffSettings.p
 
     $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('Staff Absence'));
+    $form->addRow()->addHeading('Staff Absence', __('Staff Absence'));
 
     $setting = $settingGateway->getSettingByScope('Staff', 'absenceApprovers', true);
 
@@ -121,9 +121,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/staffSettings.p
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $form->addRow()->addHeading(__('Staff Coverage'));
+    $form->addRow()->addHeading('Staff Coverage', __('Staff Coverage'));
 
-    $setting = getSettingByScope($connection2, 'Staff', 'substituteInfo', true);
+    $setting = $settingGateway->getSettingByScope('Staff', 'substituteInfo', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
@@ -138,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/staffSettings.p
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addNumber($setting['name'])->required()->onlyInteger(false)->setValue($setting['value']);
 
-    $form->addRow()->addHeading(__('Notifications'));
+    $form->addRow()->addHeading('Notifications', __('Notifications'));
 
     $setting = $settingGateway->getSettingByScope('Staff', 'absenceNotificationGroups', true);
     $notificationList = $container->get(GroupGateway::class)->selectGroupsByIDList($setting['value'])->fetchKeyPair();
@@ -169,29 +169,29 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/staffSettings.p
             $row->addSelect($setting['name'])->fromArray($thresholds)->required()->selected($setting['value']);
     }
 
-    $row = $form->addRow()->addHeading(__('Field Values'));
+    $row = $form->addRow()->addHeading('Field Values', __('Field Values'));
 
-    $setting = getSettingByScope($connection2, 'Staff', 'salaryScalePositions', true);
+    $setting = $settingGateway->getSettingByScope('Staff', 'salaryScalePositions', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $setting = getSettingByScope($connection2, 'Staff', 'responsibilityPosts', true);
+    $setting = $settingGateway->getSettingByScope('Staff', 'responsibilityPosts', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $setting = getSettingByScope($connection2, 'Staff', 'biographicalGroupingOrder', true);
+    $setting = $settingGateway->getSettingByScope('Staff', 'biographicalGroupingOrder', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $setting = getSettingByScope($connection2, 'Staff', 'jobOpeningDescriptionTemplate', true);
+    $setting = $settingGateway->getSettingByScope('Staff', 'jobOpeningDescriptionTemplate', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
-    $row = $form->addRow()->addHeading(__('Name Formats'))->append(__('How should staff names be formatted?').' '.__('Choose from [title], [preferredName], [surname].').' '.__('Use a colon to limit the number of letters, for example [preferredName:1] will use the first initial.'));
+    $row = $form->addRow()->addHeading('Name Formats', __('Name Formats'))->append(__('How should staff names be formatted?').' '.__('Choose from [title], [preferredName], [surname].').' '.__('Use a colon to limit the number of letters, for example [preferredName:1] will use the first initial.'));
 
     $data = array('gibbonPersonID' => $session->get('gibbonPersonID'));
     $sql = "SELECT title, preferredName, surname FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID";
@@ -200,8 +200,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/staffSettings.p
         list($title, $preferredName, $surname) = array_values($result->fetch());
     }
 
-    $setting = getSettingByScope($connection2, 'System', 'nameFormatStaffFormal', true);
-    $settingRev = getSettingByScope($connection2, 'System', 'nameFormatStaffFormalReversed', true);
+    $setting = $settingGateway->getSettingByScope('System', 'nameFormatStaffFormal', true);
+    $settingRev = $settingGateway->getSettingByScope('System', 'nameFormatStaffFormalReversed', true);
 
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']))->description(
@@ -211,8 +211,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/staffSettings.p
         $col->addTextField($setting['name'])->required()->maxLength(60)->setValue($setting['value']);
         $col->addTextField($settingRev['name'])->required()->maxLength(60)->setTitle(__('Reversed'))->setValue($settingRev['value']);
 
-    $setting = getSettingByScope($connection2, 'System', 'nameFormatStaffInformal', true);
-    $settingRev = getSettingByScope($connection2, 'System', 'nameFormatStaffInformalReversed', true);
+    $setting = $settingGateway->getSettingByScope('System', 'nameFormatStaffInformal', true);
+    $settingRev = $settingGateway->getSettingByScope('System', 'nameFormatStaffInformalReversed', true);
 
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']))->description(

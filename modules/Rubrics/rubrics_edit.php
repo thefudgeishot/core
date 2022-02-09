@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
@@ -148,7 +149,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_edit.php')
                 echo '</div>';
             }
 
-            //Check if school year specified
+            //Check if gibbonRubricID specified
             $gibbonRubricID = $_GET['gibbonRubricID'];
             if ($gibbonRubricID == '') {
                 echo "<div class='error'>";
@@ -170,9 +171,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_edit.php')
                     $values = $result->fetch();
 
                     if ($search != '' or $filter2 != '') {
-                        echo "<div class='linkTop'>";
-                        echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Rubrics/rubrics.php&search=$search&filter2=$filter2'>".__('Back to Search Results').'</a>';
-                        echo '</div>';
+                         $params = [
+                            "search" => $search,
+                            "filter2" => $filter2,
+                        ];
+                        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Rubrics', 'rubrics.php')->withQueryParams($params));
                     }
 
                     $form = Form::create('addRubric', $session->get('absoluteURL').'/modules/'.$session->get('module').'/rubrics_editProcess.php?gibbonRubricID='.$gibbonRubricID.'&search='.$search.'&filter2='.$filter2);
@@ -180,7 +183,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_edit.php')
 
                     $form->addHiddenValue('address', $session->get('address'));
 
-                    $form->addRow()->addHeading(__('Rubric Basics'));
+                    $form->addRow()->addHeading('Rubric Basics', __('Rubric Basics'));
 
                     $row = $form->addRow();
                         $row->addLabel('scope', 'Scope');

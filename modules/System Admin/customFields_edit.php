@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Domain\System\CustomFieldGateway;
@@ -50,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/customFields_
 
     $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('Basic Details'));
+    $form->addRow()->addHeading('Basic Details', __('Basic Details'));
 
     $row = $form->addRow();
         $row->addLabel('context', __('Context'));
@@ -66,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/customFields_
 
     $headings = $customFieldHandler->getHeadings();
     $headings = $headings[$values['context']] ?? [];
-    $isHeadingCustom = !empty($values['heading']) && !in_array($values['heading'], $headings);
+    $isHeadingCustom = !empty($values['heading']) && !array_key_exists($values['heading'], $headings);
     $row = $form->addRow();
         $row->addLabel('heading', __('Heading'))->description(__('Optionally list this field under a heading.'));
         $row->addSelect('heading')
@@ -86,7 +87,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/customFields_
         $row->addLabel('active', __('Active'));
         $row->addYesNo('active')->required();
 
-    $form->addRow()->addHeading(__('Configure'));
+    $form->addRow()->addHeading('Configure', __('Configure'));
 
     $types = $customFieldHandler->getTypes();
     $row = $form->addRow();
@@ -128,7 +129,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/customFields_
         $row->addYesNo('hidden')->required();
 
     if ($values['context'] == 'User') {
-        $form->addRow()->addHeading(__('Visibility'));
+        $form->addRow()->addHeading('Visibility', __('Visibility'));
 
         $activePersonOptions = array(
             'activePersonStudent' => __('Student'),
@@ -151,7 +152,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/customFields_
             $row->addLabel('activeApplicationForm', __('Include In Application Form?'));
             $row->addSelect('activeApplicationForm')->fromArray(array('1' => __('Yes'), '0' => __('No')))->required();
 
-        $enablePublicRegistration = getSettingByScope($connection2, 'User Admin', 'enablePublicRegistration');
+        $enablePublicRegistration = $container->get(SettingGateway::class)->getSettingByScope('User Admin', 'enablePublicRegistration');
         if ($enablePublicRegistration == 'Y') {
             $row = $form->addRow();
                 $row->addLabel('activePublicRegistration', __('Include In Public Registration Form?'));

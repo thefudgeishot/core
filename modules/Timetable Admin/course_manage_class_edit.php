@@ -33,7 +33,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
         ->add(__('Edit Course & Classes'), 'course_manage_edit.php', ['gibbonCourseID' => $gibbonCourseID, 'gibbonSchoolYearID' => $gibbonSchoolYearID])
         ->add(__('Edit Class'));
 
-    //Check if school year specified
+    //Check if gibbonCourseClassID, gibbonCourseID, and gibbonSchoolYearID specified
     if ($gibbonCourseClassID == '' or $gibbonCourseID == '' or $gibbonSchoolYearID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
@@ -56,7 +56,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
 			$form->addHiddenValue('gibbonCourseClassID', $gibbonCourseClassID);
 			$form->addHiddenValue('gibbonCourseID', $gibbonCourseID);
 			
-            $row = $form->addRow()->addHeading(__('Basic Details'));
+            $row = $form->addRow()->addHeading('Basic Details', __('Basic Details'));
 
 			$row = $form->addRow();
 				$row->addLabel('schoolYearName', __('School Year'));

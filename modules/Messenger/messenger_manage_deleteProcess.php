@@ -22,20 +22,21 @@ include '../../gibbon.php';
 $gibbonMessengerID = $_GET['gibbonMessengerID'] ?? '';
 $search = $_GET['search'] ?? '';
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/messenger_manage_delete.php&search=$search&gibbonMessengerID=".$gibbonMessengerID;
-$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/messenger_manage.php&search=$search";
+$address = $_POST['address'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($address)."/messenger_manage_delete.php&search=$search&gibbonMessengerID=".$gibbonMessengerID;
+$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($address)."/messenger_manage.php&search=$search";
 
 if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_manage_delete.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
-    $highestAction = getHighestGroupedAction($guid, $_POST['address'], $connection2);
+    $highestAction = getHighestGroupedAction($guid, $address, $connection2);
     if ($highestAction == false) {
         $URL .= "&return=error0$params";
         header("Location: {$URL}");
     } else {
         //Proceed!
-        //Check if school year specified
+        //Check if gibbonMessengerID specified
         if ($gibbonMessengerID == '') {
             $URL .= '&return=error1';
             header("Location: {$URL}");

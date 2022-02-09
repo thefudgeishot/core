@@ -26,10 +26,29 @@ use Gibbon\Domain\System\CustomFieldGateway;
 
 class CustomFieldHandler
 {
+    /**
+     * @var \Gibbon\Domain\System\CustomFieldGateway
+     */
     protected $customFieldGateway;
 
+    /**
+     * @var \Gibbon\FileUploader
+     */
+    protected $fileUploader;
+
+    /**
+     * @var string[][]
+     */
     protected $contexts;
+
+    /**
+     * @var string[][]
+     */
     protected $types;
+
+    /**
+     * @var string[][]
+     */
     protected $headings;
 
     public function __construct(CustomFieldGateway $customFieldGateway, FileUploader $fileUploader)
@@ -146,7 +165,9 @@ class CustomFieldHandler
         $fields = [];
 
         foreach ($customFields as $field) {
-            $fieldValue = $_POST[$prefix.$field['gibbonCustomFieldID']] ?? null;
+            $fieldValue = $field['type'] == 'editor'
+                ? $_POST[$prefix.$field['gibbonCustomFieldID'].'CustomEditor'] ?? null
+                : $_POST[$prefix.$field['gibbonCustomFieldID']] ?? null;
 
             if ($field['type'] == 'file' || $field['type'] == 'image') {
                 if ($field['type'] == 'image') {
@@ -212,13 +233,13 @@ class CustomFieldHandler
             if ((empty($heading) || $heading == 'Other Information') && !empty($params['heading'])) {
                 $heading = $params['heading'];
             }
-            
+
             // Handle creating a new heading if the form doesn't already have one
             if (!empty($heading) && !$form->hasHeading($heading)) {
                 $table = $context == 'Individual Needs' 
                     ? $form->addRow()->addTable()->setClass('smallIntBorder fullWidth mt-2')
                     : $form;
-                
+
                 $row = $table->addRow()->addClass($params['class'] ?? '');
                 $row->addHeading(__($heading), $params['headingLevel'] ?? 'h3');
             }
@@ -235,6 +256,7 @@ class CustomFieldHandler
                 $row = $table->addRow()->addClass($params['class'] ?? '')->setHeading($heading);
 
                 if ($field['type'] == 'editor') {
+                    $name = $name.'CustomEditor';
                     $row = $row->addColumn();
                 }
 
@@ -358,7 +380,9 @@ class CustomFieldHandler
             if (!isset($_POST['newcustom'.$field['gibbonCustomFieldID'].'On'])) continue;
             if (!isset($_POST['newcustom'.$field['gibbonCustomFieldID']])) continue;
 
-            $value = $_POST['newcustom'.$field['gibbonCustomFieldID']] ?? '';
+            $value = $field['type'] == 'editor'
+                ? $_POST['newcustom'.$field['gibbonCustomFieldID'].'CustomEditor'] ?? ''
+                : $_POST['newcustom'.$field['gibbonCustomFieldID']] ?? '';
 
             if ($field['type'] == 'date' && !empty($value)) {
                 $value = Format::dateConvert($value);

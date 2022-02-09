@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use GuzzleHttp\Client;
 use Gibbon\Domain\System\I18nGateway;
 use Psr\Container\ContainerInterface;
 
@@ -116,10 +117,11 @@ function setFirstDayOfTheWeek($connection2, $fdotw, $databaseName)
  */
 function getModuleManifest($moduleName, $guid)
 {
+    global $session;
     $name = $description = $entryURL = $type = $category = $version = $author = $url = '';
     $manifestOK = false;
 
-    $manifestFile = $_SESSION[$guid]['absolutePath'].'/modules/'.$moduleName.'/manifest.php';
+    $manifestFile = $session->get('absolutePath').'/modules/'.$moduleName.'/manifest.php';
     if (is_file($manifestFile)) {
         include $manifestFile;
         $manifestOK = ($name == $moduleName);
@@ -137,7 +139,8 @@ function getModuleManifest($moduleName, $guid)
  */
 function getModuleVersion($moduleName, $guid)
 {
-    $versionFile = $_SESSION[$guid]['absolutePath'].'/modules/'.$moduleName.'/version.php';
+    global $session;
+    $versionFile = $session->get('absolutePath').'/modules/'.$moduleName.'/version.php';
     if (is_file($versionFile)) {
         include $versionFile;
        return ['moduleVersion' => $moduleVersion, 'coreVersion' => ($coreVersion ?? '')];
@@ -154,11 +157,12 @@ function getModuleVersion($moduleName, $guid)
  */
 function getThemeManifest($themeName, $guid)
 {
+    global $session;
     $name = $description = $version = $author = $url = '';
     $responsive = 'N';
     $manifestOK = false;
 
-    $manifestFile = $_SESSION[$guid]['absolutePath'].'/themes/'.$themeName.'/manifest.php';
+    $manifestFile = $session->get('absolutePath').'/themes/'.$themeName.'/manifest.php';
     if (is_file($manifestFile)) {
         include $manifestFile;
         $manifestOK = ($name == $themeName);
@@ -172,9 +176,11 @@ function getThemeManifest($themeName, $guid)
  */
 function getThemeVersion($themeName, $guid)
 {
+    global $session;
+
     $return = false;
 
-    $file = file($_SESSION[$guid]['absolutePath']."/themes/$themeName/manifest.php");
+    $file = file($session->get('absolutePath')."/themes/$themeName/manifest.php");
     foreach ($file as $fileEntry) {
         if (substr($fileEntry, 1, 7) == 'version') {
             $temp = '';
@@ -189,6 +195,8 @@ function getThemeVersion($themeName, $guid)
 
 function getCurrentVersion($guid, $connection2, $version)
 {
+    global $session;
+
     $output = '';
 
     $output .= '<script type="text/javascript">';
@@ -206,7 +214,7 @@ function getCurrentVersion($guid, $connection2, $version)
     $output .= "if (versionCompare(data['version'], '".$version."') <= 0) {";
     $output .= "$('#gibbonCheck').html('<span class=\"tag rounded-full success\">".__('OK')."</span>');";
     $output .= '$("#status").attr("class","success");';
-    $output .= "$(\"#status\").html('".sprintf(__('Version check successful. Your Gibbon installation is up to date at %1$s.'), $version).' '.sprintf(__('If you have recently updated your system files, please check that your database is up to date in %1$sUpdates%2$s.'), "<a href=\'".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/System Admin/update.php\'>", '</a>')."') ;";
+    $output .= "$(\"#status\").html('".sprintf(__('Version check successful. Your Gibbon installation is up to date at %1$s.'), $version).' '.sprintf(__('If you have recently updated your system files, please check that your database is up to date in %1$sUpdates%2$s.'), "<a href=\'".$session->get('absoluteURL')."/index.php?q=/modules/System Admin/update.php\'>", '</a>')."') ;";
     $output .= '}';
     $output .= 'else {';
     $output .= '$("#status").attr("class","warning");';
@@ -224,15 +232,12 @@ function getCurrentVersion($guid, $connection2, $version)
     $output .= '});';
     $output .= '</script>';
 
-    //$cuttingEdgeCode = getSettingByScope($connection2, 'System', 'cuttingEdgeCode');
-    //if ($cuttingEdgeCode != 'Y') {
-        $output .= "<div id='status' class='dull' style='max-height: 49px;'>";
-        $output .= "<div style='width: 100%; text-align: center'>";
-        $output .= "<img style='margin: 0px 0 0px 0' src='".$_SESSION[$guid]['absoluteURL'].'/themes/'.$_SESSION[$guid]['gibbonThemeName']."/img/loading.gif' alt='Loading'/><br/>";
-        $output .= __('Checking for Gibbon updates.');
-        $output .= '</div>';
-        $output .= '</div>';
-    //}
+    $output .= "<div id='status' class='dull' style='max-height: 49px;'>";
+    $output .= "<div style='width: 100%; text-align: center'>";
+    $output .= "<img style='margin: 0px 0 0px 0' src='".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/loading.gif' alt='Loading'/><br/>";
+    $output .= __('Checking for Gibbon updates.');
+    $output .= '</div>';
+    $output .= '</div>';
 
     return $output;
 }
@@ -290,9 +295,10 @@ function i18nCheckAndUpdateVersion($container, $version = null)
 
     foreach ($i18nList as $i18n) {
         $fileExists = i18nFileExists($absolutePath, $i18n['code']);
+        $i18nVersion = $i18n['version'] ?? '';
 
         if ($i18n['installed'] == 'N' && $fileExists) {
-            $versionUpdate = version_compare($version, $i18n['version'], '>') ? $version : $i18n['version'];
+            $versionUpdate = version_compare((string) $version, $i18nVersion, '>') ? $version : $i18nVersion;
             $data = ['installed' => 'Y', 'version' => $versionUpdate];
             $i18nGateway->update($i18n['gibboni18nID'], $data);
         } else if ($i18n['installed'] == 'Y' && !$fileExists) {
@@ -435,4 +441,46 @@ function camelToWords($name)
     ], ' ', preg_replace('/(?<![A-Z])[A-Z]/', ' \0', $name))));
 
     return $label;
+}
+
+/**
+ * Performs a HTTP GET request on the uploads folder 
+ *
+ * @param string $absoluteURL
+ * @return string
+ */
+function checkUploadsFolderStatus($absoluteURL) : bool
+{
+    $statusCode = '';
+    $responseBody = '';
+    try {
+        $client = new Client();
+        $response = $client->request('GET', $absoluteURL.'/uploads', [
+            'headers' => ['Referer' => $absoluteURL.'/index.php'],
+        ]);
+        $statusCode = $response->getStatusCode();
+        $responseBody = $response->getBody();
+    } catch (GuzzleHttp\Exception\ClientException $e) {
+        $responseBody = $e->getMessage();
+    } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+        $responseBody = $e->getMessage();
+    }
+
+    if (stripos($responseBody, 'Index of') !== false || stripos($responseBody, 'Parent Directory') !== false) {
+        return false;
+    }
+
+    if (substr($statusCode, 0, 1) == '4') {
+        return true;
+    }
+
+    if (stripos($responseBody, '403') !== false || stripos($responseBody, '404') !== false) {
+        return true;
+    }
+
+    if (stripos($responseBody, 'Forbidden') !== false || stripos($responseBody, 'Not Found') !== false) {
+        return true;
+    }
+
+    return false;
 }

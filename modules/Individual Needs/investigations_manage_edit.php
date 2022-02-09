@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\UI\Chart\Chart;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
-use Gibbon\UI\Chart\Chart;
+use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\IndividualNeeds\INInvestigationGateway;
 use Gibbon\Domain\IndividualNeeds\INInvestigationContributionGateway;
 
@@ -73,16 +74,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
                 } else {
 
                     if ($gibbonPersonID != '' or $gibbonFormGroupID != '' or $gibbonYearGroupID != '') {
-                        echo "<div class='linkTop'>";
-                        echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Individual Needs/investigations_manage.php&gibbonPersonID=$gibbonPersonID&gibbonFormGroupID=$gibbonFormGroupID&gibbonYearGroupID=$gibbonYearGroupID'>".__('Back to Search Results').'</a>';
-                        echo '</div>';
+                        $params = [
+                            "gibbonPersonID" => $gibbonPersonID,
+                            "gibbonFormGroupID" => $gibbonFormGroupID,
+                            "gibbonYearGroupID" => $gibbonYearGroupID
+                        ];
+                        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Individual Needs', 'investigations_manage.php')->withQueryParams($params));
                     }
 
                     $form = Form::create('addform', $session->get('absoluteURL')."/modules/Individual Needs/investigations_manage_editProcess.php?gibbonPersonID=$gibbonPersonID&gibbonFormGroupID=$gibbonFormGroupID&gibbonYearGroupID=$gibbonYearGroupID");
                     $form->setFactory(DatabaseFormFactory::create($pdo));
                     $form->addHiddenValue('address', "/modules/Individual Needs/investigations_manage_edit.php");
                     $form->addHiddenValue('gibbonINInvestigationID', $gibbonINInvestigationID);
-                    $form->addRow()->addHeading(__('Basic Information'));
+                    $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
                     //Student
                     $row = $form->addRow();
@@ -96,7 +100,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
 
                     //Date
                     $row = $form->addRow();
-                    	$row->addLabel('date', __('Date'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
+                    	$row->addLabel('date', __('Date'));
                     	$row->addDate('date')->setValue(date($session->get('i18n')['dateFormatPHP']))->required()->readonly();
 
             		//Reason
@@ -132,7 +136,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
 
                     //Form Tutor Resolution
                     if ($investigation['status'] == 'Resolved' || ($investigation['status'] == 'Referral' && $isTutor)) {
-                        $form->addRow()->addHeading(__('Form Tutor Resolution'));
+                        $form->addRow()->addHeading('Form Tutor Resolution', __('Form Tutor Resolution'));
                         if ($isTutor && $investigation['status'] == 'Referral') {
                             $row = $form->addRow();
                                 $row->addLabel('resolvable', __('Resolvable?'))->description(__('Is form tutor able to resolve without further input? If no, further investigation will be launched.'));
@@ -183,7 +187,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
                     }
 
                     if ($investigation['status'] == 'Investigation' || $investigation['status'] == 'Investigation Complete') {
-                        $form->addRow()->addHeading(__('Investigation Details'));
+                        $form->addRow()->addHeading('Investigation Details', __('Investigation Details'));
 
                         $contributionsGateway = $container->get(INInvestigationContributionGateway::class);
                         $criteria2 = $contributionsGateway->newQueryCriteria()

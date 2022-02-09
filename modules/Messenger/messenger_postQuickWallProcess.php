@@ -17,14 +17,18 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Data\Validator;
 use Gibbon\Services\Format;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['body' => 'HTML']);
 
 //Module includes
 include './moduleFunctions.php';
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address']).'/messenger_postQuickWall.php';
+$address = $_GET['address'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($address).'/messenger_postQuickWall.php';
 $time = time();
 
 if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQuickWall.php') == false) {
@@ -37,6 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
     } else {
         //Proceed!
         //Setup return variables
+
         $messageWall = $_POST['messageWall'] ?? '';
         if ($messageWall != 'Y') {
             $messageWall = 'N';
@@ -64,7 +69,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
         $body = stripslashes($_POST['body'] ?? '');
 
         // Turn copy-pasted div breaks into paragraph breaks
-        $body = str_replace(['<div ', '<div>', '</div>'], ['<p ', '<p>', '</p>'], $body);
+        $body = str_ireplace(['<div ', '<div>', '</div>'], ['<p ', '<p>', '</p>'], $body);
 
         if ($subject == '' or $body == '') {
             $URL .= '&return=error1';

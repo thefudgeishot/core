@@ -29,7 +29,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
         ->add(__('Manage Budget Cycles'), 'budgetCycles_manage.php')
         ->add(__('Edit Budget Cycle'));
 
-    //Check if school year specified
+    //Check if gibbonFinanceBudgetCycleID specified
     $gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'];
     if ($gibbonFinanceBudgetCycleID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -52,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
             $form->addHiddenValue("address", $session->get('address'));
 
             $row = $form->addRow();
-                $row->addHeading(__("Basic Information"));
+                $row->addHeading("Basic Information", __("Basic Information"));
 
             $row = $form->addRow();
                 $row->addLabel("name", __("Name"))->description(__("Must be unique."));
@@ -81,7 +81,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
                 $row->addDate("dateEnd")->required();
 
             $row = $form->addRow();
-                $row->addHeading(__("Budget Allocations"));
+                $row->addHeading("Budget Allocations", __("Budget Allocations"));
 
 
                 $dataBudget = array('gibbonFinanceBudgetCycleID' => $gibbonFinanceBudgetCycleID);

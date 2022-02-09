@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
@@ -46,7 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
             ->add(__('Manage Staff'), 'staff_manage.php', ['search' => $search, 'allStaff' => $allStaff])
             ->add(__('Edit Staff'), 'staff_manage_edit.php');
 
-        //Check if school year specified
+        //Check if gibbonStaffID specified
         $gibbonStaffID = $_GET['gibbonStaffID'];
         if ($gibbonStaffID == '') {
             echo "<div class='error'>";
@@ -66,9 +67,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                 $gibbonPersonID = $values['gibbonPersonID'];
 
                 if ($search != '' or $allStaff != '') {
-                    echo "<div class='linkTop'>";
-                    echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Staff/staff_manage.php&search=$search&allStaff=$allStaff'>".__('Back to Search Results').'</a>';
-                    echo '</div>';
+                    $params = [
+                        "search" => $search,
+                        "allStaff" => $allStaff,
+                    ];
+                    $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Staff', 'staff_manage.php')->withQueryParams($params));
                 }
 
                 $customFieldHandler = $container->get(CustomFieldHandler::class);
@@ -89,7 +92,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                     ->addParam('allStaff', $allStaff)
                     ->displayLabel();
 
-                $form->addRow()->addHeading(__('Basic Information'));
+                $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
                 $row = $form->addRow();
                     $row->addLabel('gibbonPersonName', __('Person'))->description(__('Must be unique.'));
@@ -116,7 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                     $row->addLabel('dateEnd', __('End Date'))->description(__("Users's last day at school."));
                     $row->addDate('dateEnd');
 
-                $form->addRow()->addHeading(__('First Aid'));
+                $form->addRow()->addHeading('First Aid', __('First Aid'));
 
                 $row = $form->addRow();
                     $row->addLabel('firstAidQualified', __('First Aid Qualified?'));
@@ -132,7 +135,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                     $row->addLabel('firstAidExpiry', __('First Aid Expiry'));
                     $row->addDate('firstAidExpiry');
 
-                $form->addRow()->addHeading(__('Biography'));
+                $form->addRow()->addHeading('Biography', __('Biography'));
 
                 $row = $form->addRow();
                     $row->addLabel('countryOfOrigin', __('Country Of Origin'));

@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\SettingGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -38,7 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
         echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
-        $search = (isset($_GET['search']))? $_GET['search'] : null;
+        $search = $_GET['search'] ?? '';
 
         $editLink = '';
         if (isset($_GET['editID'])) {
@@ -48,16 +50,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
 
 
         if ($search != '') {
-            echo "<div class='linkTop'>";
-            echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Planner/resources_manage.php&search='.$search."'>".__('Back to Search Results').'</a>';
-            echo '</div>';
+            $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Planner', 'resources_manage.php')->withQueryParam('search', $search));
         }
 
         $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module').'/resources_manage_addProcess.php?search='.$search);
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->addHiddenValue('address', $session->get('address'));
 
-        $form->addRow()->addHeading(__('Resource Contents'));
+        $form->addRow()->addHeading('Resource Contents', __('Resource Contents'));
 
         $types = array('File' => __('File'), 'HTML' => __('HTML'), 'Link' => __('Link'));
         $row = $form->addRow();
@@ -83,19 +83,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
             $row->addLabel('link', __('Link'));
             $row->addURL('link')->maxLength(255)->required();
 
-        $form->addRow()->addHeading(__('Resource Details'));
+        $form->addRow()->addHeading('Resource Details', __('Resource Details'));
 
         $row = $form->addRow();
             $row->addLabel('name', __('Name'));
             $row->addTextField('name')->required()->maxLength(60);
 
-        $categories = getSettingByScope($connection2, 'Resources', 'categories');
+        $settingGateway = $container->get(SettingGateway::class);
+
+        $categories = $settingGateway->getSettingByScope('Resources', 'categories');
         $row = $form->addRow();
             $row->addLabel('category', __('Category'));
             $row->addSelect('category')->fromString($categories)->required()->placeholder();
 
-        $purposesGeneral = getSettingByScope($connection2, 'Resources', 'purposesGeneral');
-        $purposesRestricted = ($highestAction == 'Manage Resources_all')? getSettingByScope($connection2, 'Resources', 'purposesRestricted') : '';
+        $purposesGeneral = $settingGateway->getSettingByScope('Resources', 'purposesGeneral');
+        $purposesRestricted = ($highestAction == 'Manage Resources_all')? $settingGateway->getSettingByScope('Resources', 'purposesRestricted') : '';
         $row = $form->addRow();
             $row->addLabel('purpose', __('Purpose'));
             $row->addSelect('purpose')->fromString($purposesGeneral)->fromString($purposesRestricted)->placeholder();

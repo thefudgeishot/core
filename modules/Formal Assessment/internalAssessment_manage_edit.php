@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
@@ -24,14 +25,15 @@ use Gibbon\Forms\DatabaseFormFactory;
 require_once __DIR__ . '/moduleFunctions.php';
 
 //Get alternative header names
-$attainmentAlternativeName = getSettingByScope($connection2, 'Markbook', 'attainmentAlternativeName');
-$effortAlternativeName = getSettingByScope($connection2, 'Markbook', 'effortAlternativeName');
+$settingGateway = $container->get(SettingGateway::class);
+$attainmentAlternativeName = $settingGateway->getSettingByScope('Markbook', 'attainmentAlternativeName');
+$effortAlternativeName = $settingGateway->getSettingByScope('Markbook', 'effortAlternativeName');
 
 if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internalAssessment_manage_edit.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Check if school year specified
+    //Check if gibbonCourseClassID and gibbonInternalAssessmentColumnID specified
     $gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
     $gibbonInternalAssessmentColumnID = $_GET['gibbonInternalAssessmentColumnID'] ?? '';
     if ($gibbonCourseClassID == '' or $gibbonInternalAssessmentColumnID == '') {
@@ -78,7 +80,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                     $form->setFactory(DatabaseFormFactory::create($pdo));
                     $form->addHiddenValue('address', $session->get('address'));
 
-                    $form->addRow()->addHeading(__('Basic Information'));
+                    $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
                     $row = $form->addRow();
                         $row->addLabel('className', __('Class'));
@@ -92,7 +94,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                         $row->addLabel('description', __('Description'));
                         $row->addTextField('description')->required()->maxLength(1000);
 
-                    $types = getSettingByScope($connection2, 'Formal Assessment', 'internalAssessmentTypes');
+                    $types = $settingGateway->getSettingByScope('Formal Assessment', 'internalAssessmentTypes');
                     if (!empty($types)) {
                         $row = $form->addRow();
                             $row->addLabel('type', __('Type'));
@@ -103,7 +105,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                         $row->addLabel('file', __('Attachment'));
                         $row->addFileUpload('file')->setAttachment('attachment', $session->get('absoluteURL'), $values['attachment']);
 
-                    $form->addRow()->addHeading(__('Assessment'));
+                    $form->addRow()->addHeading('Assessment', __('Assessment'));
 
                     $attainmentLabel = !empty($attainmentAlternativeName)? sprintf(__('Assess %1$s?'), $attainmentAlternativeName) : __('Assess Attainment?');
                     $row = $form->addRow();
@@ -137,7 +139,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                         $row->addLabel('uploadedResponse', __('Include Uploaded Response?'));
                         $row->addYesNoRadio('uploadedResponse')->required();
 
-                    $form->addRow()->addHeading(__('Access'));
+                    $form->addRow()->addHeading('Access', __('Access'));
 
                     $row = $form->addRow();
                         $row->addLabel('viewableStudents', __('Viewable to Students'));

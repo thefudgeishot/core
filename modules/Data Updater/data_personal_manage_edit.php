@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Forms\CustomFieldHandler;
@@ -30,7 +31,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $gibbonSchoolYearID = isset($_REQUEST['gibbonSchoolYearID'])? $_REQUEST['gibbonSchoolYearID'] : $session->get('gibbonSchoolYearID');
+    $gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID');
 
     $urlParams = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
 
@@ -38,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
         ->add(__('Personal Data Updates'), 'data_personal_manage.php', $urlParams)
         ->add(__('Edit Request'));
 
-    //Check if school year specified
+    //Check if gibbonPersonUpdateID specified
     $gibbonPersonUpdateID = $_GET['gibbonPersonUpdateID'];
     if ($gibbonPersonUpdateID == 'Y') {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -146,7 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
             }
 
             $form = Form::createTable('updatePerson', $session->get('absoluteURL').'/modules/'.$session->get('module').'/data_personal_manage_editProcess.php?gibbonPersonUpdateID='.$gibbonPersonUpdateID);
-            
+
             $form->setClass('fullWidth colorOddEven');
             $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonPersonID', $oldValues['gibbonPersonID']);
@@ -170,7 +171,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 }
 
                 if ($fieldName == 'email') {
-                    $uniqueEmailAddress = getSettingByScope($connection2, 'User Admin', 'uniqueEmailAddress');
+                    $uniqueEmailAddress = $container->get(SettingGateway::class)->getSettingByScope('User Admin', 'uniqueEmailAddress');
                     if ($uniqueEmailAddress == 'Y') {
                         $data = array('gibbonPersonID' => $oldValues['gibbonPersonID'], 'email' => $newValues['email']);
                         $sql = "SELECT COUNT(*) FROM gibbonPerson WHERE email=:email AND gibbonPersonID<>:gibbonPersonID";
@@ -203,10 +204,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
             $params = compact('student', 'staff', 'parent', 'other') + ['dataUpdater' => 1];
             $changeCount += $container->get(PersonalDocumentHandler::class)->addPersonalDocumentsToDataUpdate($form, $oldValues['gibbonPersonID'], $gibbonPersonUpdateID, $params);
 
-            if ($changeCount > 0) { 
-                $row = $form->addRow();
-                    $row->addSubmit();
-            }
+            $row = $form->addRow();
+                $row->addSubmit();
 
             echo $form->getOutput();
         }

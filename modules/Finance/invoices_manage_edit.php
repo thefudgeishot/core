@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
-use Gibbon\Module\Finance\Forms\FinanceFormFactory;
 use Gibbon\Services\Format;
+use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Module\Finance\Forms\FinanceFormFactory;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -28,14 +30,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_ed
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Check if school year specified
-    $gibbonSchoolYearID = isset($_GET['gibbonSchoolYearID'])? $_GET['gibbonSchoolYearID'] : '';
-    $gibbonFinanceInvoiceID = isset($_GET['gibbonFinanceInvoiceID'])? $_GET['gibbonFinanceInvoiceID'] : '';
-    $status = isset($_GET['status'])? $_GET['status'] : '';
-    $gibbonFinanceInvoiceeID = isset($_GET['gibbonFinanceInvoiceeID'])? $_GET['gibbonFinanceInvoiceeID'] : '';
-    $monthOfIssue = isset($_GET['monthOfIssue'])? $_GET['monthOfIssue'] : '';
-    $gibbonFinanceBillingScheduleID = isset($_GET['gibbonFinanceBillingScheduleID'])? $_GET['gibbonFinanceBillingScheduleID'] : '';
-    $gibbonFinanceFeeCategoryID = isset($_GET['gibbonFinanceFeeCategoryID'])? $_GET['gibbonFinanceFeeCategoryID'] : '';
+    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+    $gibbonFinanceInvoiceID = $_GET['gibbonFinanceInvoiceID'] ?? '';
+    $status = $_GET['status'] ?? '';
+    $gibbonFinanceInvoiceeID = $_GET['gibbonFinanceInvoiceeID'] ?? '';
+    $monthOfIssue = $_GET['monthOfIssue'] ?? '';
+    $gibbonFinanceBillingScheduleID = $_GET['gibbonFinanceBillingScheduleID'] ?? '';
+    $gibbonFinanceFeeCategoryID = $_GET['gibbonFinanceFeeCategoryID'] ?? '';
 
     $urlParams = compact('gibbonSchoolYearID', 'status', 'gibbonFinanceInvoiceeID', 'monthOfIssue', 'gibbonFinanceBillingScheduleID', 'gibbonFinanceFeeCategoryID');
 
@@ -69,9 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_ed
             $values = $result->fetch();
 
             if ($status != '' or $gibbonFinanceInvoiceeID != '' or $monthOfIssue != '' or $gibbonFinanceBillingScheduleID != '') {
-                echo "<div class='linkTop'>";
-                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/invoices_manage.php&".http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
-                echo '</div>';
+                $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Finance', 'invoices_manage.php')->withQueryParams($urlParams));
             }
 
             $form = Form::create('invoice', $session->get('absoluteURL').'/modules/'.$session->get('module').'/invoices_manage_editProcess.php?'.http_build_query($urlParams));
@@ -81,7 +80,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_ed
             $form->addHiddenValue('gibbonFinanceInvoiceID', $gibbonFinanceInvoiceID);
             $form->addHiddenValue('billingScheduleType', $values['billingScheduleType']);
 
-            $form->addRow()->addHeading(__('Basic Information'));
+            $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
             $row = $form->addRow();
                 $row->addLabel('schoolYear', __('School Year'));
@@ -160,7 +159,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_ed
                 $row->addTextArea('notes')->setRows(5);
 
             // FEES
-            $form->addRow()->addHeading(__('Fees'));
+            $form->addRow()->addHeading('Fees', __('Fees'));
 
             // Ad Hoc OR Issued (Fixed Fees)
             $dataFees = array('gibbonFinanceInvoiceID' => $values['gibbonFinanceInvoiceID']);
@@ -221,7 +220,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_ed
 
                 // Add predefined block data (for templating new blocks, triggered with the feeSelector)
                 $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID);
-                $sql = "SELECT gibbonFinanceFeeID as groupBy, gibbonFinanceFeeID, name, description, fee, gibbonFinanceFeeCategoryID FROM gibbonFinanceFee ORDER BY name";
+                $sql = "SELECT gibbonFinanceFeeID as groupBy, gibbonFinanceFeeID, name, description, fee, gibbonFinanceFeeCategoryID FROM gibbonFinanceFee WHERE gibbonSchoolYearID=:gibbonSchoolYearID  ORDER BY name";
                 $result = $pdo->executeQuery($data, $sql);
                 $feeData = $result->rowCount() > 0? $result->fetchAll(\PDO::FETCH_GROUP|\PDO::FETCH_UNIQUE) : array();
 
@@ -258,21 +257,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_ed
                 }
             }
 
-            $form->addRow()->addHeading(__('Payment Log'));
+            $form->addRow()->addHeading('Payment Log', __('Payment Log'));
 
             $form->addRow()->addContent(getPaymentLog($connection2, $guid, 'gibbonFinanceInvoice', $gibbonFinanceInvoiceID));
+
+            $settingGateway = $container->get(SettingGateway::class);
 
             // EMAIL RECEIPTS
             if ($values['status'] == 'Issued' || $values['status'] == 'Paid - Partial') {
                 $form->toggleVisibilityByClass('emailReceipts')->onSelect('status')->when(array('Paid', 'Paid - Partial', 'Paid - Complete'));
-                $form->addRow()->addHeading(__('Email Receipt'))->addClass('emailReceipts');
+                $form->addRow()->addHeading('Email Receipt', __('Email Receipt'))->addClass('emailReceipts');
 
                 $row = $form->addRow()->addClass('emailReceipts');
                     $row->addYesNoRadio('emailReceipt')->checked('Y');
 
                 $form->toggleVisibilityByClass('emailReceiptsTable')->onRadio('emailReceipt')->when(array('Y'));
 
-                $email = getSettingByScope($connection2, 'Finance', 'email');
+                $email = $settingGateway->getSettingByScope('Finance', 'email');
                 $form->addHiddenValue('email', $email);
                 if (empty($email)) {
                     $row = $form->addRow()->addClass('emailReceipts emailReceiptsTable');
@@ -294,7 +295,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_ed
 
                 $form->toggleVisibilityByClass('emailRemindersTable')->onRadio('emailReminder')->when(array('Y'));
 
-                $email = getSettingByScope($connection2, 'Finance', 'email');
+                $email = $settingGateway->getSettingByScope('Finance', 'email');
                 $form->addHiddenValue('email', $email);
                 if (empty($email)) {
                     $row = $form->addRow()->addClass('emailReminders emailRemindersTable');

@@ -16,8 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $gibbonStringID = $_GET['gibbonStringID'] ?? '';
 $search = $_GET['search'] ?? '';
@@ -71,7 +74,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
                 }
 
                 //Update string list in session & clear cache to force reload
-                $gibbon->locale->setStringReplacementList($pdo, true);
+                $gibbon->locale->setStringReplacementList($session, $pdo, true);
                 $session->set('pageLoads', null);
 
                 $URL .= '&return=success0';

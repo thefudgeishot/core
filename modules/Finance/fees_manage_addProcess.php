@@ -16,11 +16,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+use Gibbon\Data\Validator;
 
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$search = $_GET['search'];
+$_POST = $container->get(Validator::class)->sanitize($_POST);
+
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$search = $_GET['search'] ?? '';
 
 if ($gibbonSchoolYearID == '') { echo 'Fatal error loading this page!';
 } else {

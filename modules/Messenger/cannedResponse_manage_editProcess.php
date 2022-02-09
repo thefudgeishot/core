@@ -16,11 +16,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['body' => 'HTML']);
 
 $gibbonMessengerCannedResponseID = $_GET['gibbonMessengerCannedResponseID'] ?? '';
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/cannedResponse_manage_edit.php&gibbonMessengerCannedResponseID='.$gibbonMessengerCannedResponseID;
+$address = $_POST['address'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($address).'/cannedResponse_manage_edit.php&gibbonMessengerCannedResponseID='.$gibbonMessengerCannedResponseID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_manage_edit.php') == false) {
     $URL .= '&return=error0';
