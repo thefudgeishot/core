@@ -130,11 +130,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php') ==
                     ->addParams($params)
                     ->setIcon('download')
                     ->displayLabel();
-                ?> 
+                ?>
                     <script>
-                        if ($('#TB_window').is(':visible')==true && $('input').prop('disabled')) {
+                    const button = document.querySelector($('#timetableSubManage input[type=submit]'));
+                    button.addEventListener('click', event => {
                             tb_remove();
-                        }
+                      });
                     </script>
                 <?php
             }

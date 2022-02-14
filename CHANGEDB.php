@@ -1058,7 +1058,7 @@ ALTER TABLE `gibbonPerson` CHANGE `genericAPIRefreshToken` `genericAPIRefreshTok
 ALTER TABLE `gibbonSession` CHANGE `sessionData` `sessionData` MEDIUMTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;end
 ALTER TABLE `gibbonPerson` DROP `password`;end
 UPDATE `gibbonMarkbookColumn` SET gibbonPlannerEntryID=NULL WHERE gibbonPlannerEntryID=00000000000000;end
-UPDATE `gibbonCountry` SET `printable_name` = 'Libya', `iddCountryCode` = '00218' WHERE `gibbonCountry`.`printable_name` LIKE '%Libya%';end 
+UPDATE `gibbonCountry` SET `printable_name` = 'Libya', `iddCountryCode` = '00218' WHERE `gibbonCountry`.`printable_name` LIKE '%Libya%';end
 INSERT INTO `gibbonLanguage` (`gibbonLanguageID`, `name`) VALUES (NULL, 'Tamazight');end
 ALTER TABLE `gibbonReportingCriteriaType` ADD `defaultValue` VARCHAR(255) DEFAULT NULL AFTER `valueType`;end
 CREATE TABLE IF NOT EXISTS `gibbonPersonStatusLog` (`gibbonPersonStatusLogID` int(12) UNSIGNED ZEROFILL NOT NULL, `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL, `statusOld` enum('Full','Expected','Left','Pending Approval') NOT NULL DEFAULT 'Full', `statusNew` enum('Full','Expected','Left','Pending Approval') NOT NULL DEFAULT 'Full', `reason` text NOT NULL, `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
@@ -1088,4 +1088,5 @@ $sql[$count][1] = "
 ++$count;
 $sql[$count][0] = '24.0.00';
 $sql[$count][1] = "
+INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `type`, `scopes`, `active`) VALUES ('Updated Timetable Subscriber', 'Timetable', 'Timetable subscriber_viewEdit', 'Core', 'All,gibbonPersonIDStudent,gibbonYearGroupID', 'Y');end
 ";

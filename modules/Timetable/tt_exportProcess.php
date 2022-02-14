@@ -1,6 +1,8 @@
 <?php
 include '../../gibbon.php';
+use Gibbon\Domain\System\NotificationGateway;
 
+// Calendar Export Process
 date_default_timezone_set($session->get('timezone'));
 $vCalendar = new \Eluceo\iCal\Component\Calendar('Calendar Export');
 
@@ -53,3 +55,17 @@ if ($result0->rowCount() < 1) {
     echo $vCalendar->render();
 }
 
+// Subscribe to timetable update notification
+$result = $gateway->selectNotificationEventByName('Timetable', 'Updated Timetable Subscriber')->fetch();
+$gibbonNotificationEventID = $result['gibbonNotificationEventID'];
+$gibbonPersonID = $gibbon->session->get('gibbonPersonID');
+$scopeType = 'All';
+$scopeID = 4;
+$listener = array(
+    'gibbonNotificationEventID' => $result['gibbonNotificationEventID'],
+    'gibbonPersonID'            => $gibbonPersonID,
+    'scopeType'                 => $scopeType,
+    'scopeID'                   => $scopeID
+);
+
+$result = $gateway->insertNotificationListener($listener);
