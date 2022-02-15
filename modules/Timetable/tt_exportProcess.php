@@ -50,22 +50,26 @@ if ($result0->rowCount() < 1) {
             }
         }
     }
+    
+    // Subscribe to timetable update notification
+    $gateway = new NotificationGateway($pdo);
+    $result = $gateway->selectNotificationEventByName('Timetable', 'Updated Timetable Subscriber')->fetch();
+    $gibbonNotificationEventID = $result['gibbonNotificationEventID'];
+    $gibbonPersonID = $gibbon->session->get('gibbonPersonID');
+    $scopeType = 'All';
+    $scopeID = 0;
+    $listener = array(
+        'gibbonNotificationEventID' => $result['gibbonNotificationEventID'],
+        'gibbonPersonID'            => $gibbonPersonID,
+        'scopeType'                 => $scopeType,
+        'scopeID'                   => $scopeID
+    );
+
+    $result = $gateway->insertNotificationListener($listener);
+    
     header('Content-Type: text/calendar; charset=utf-8');
     header('Content-Disposition: attachment; filename="cal.ics"');
     echo $vCalendar->render();
 }
 
-// Subscribe to timetable update notification
-$result = $gateway->selectNotificationEventByName('Timetable', 'Updated Timetable Subscriber')->fetch();
-$gibbonNotificationEventID = $result['gibbonNotificationEventID'];
-$gibbonPersonID = $gibbon->session->get('gibbonPersonID');
-$scopeType = 'All';
-$scopeID = 4;
-$listener = array(
-    'gibbonNotificationEventID' => $result['gibbonNotificationEventID'],
-    'gibbonPersonID'            => $gibbonPersonID,
-    'scopeType'                 => $scopeType,
-    'scopeID'                   => $scopeID
-);
 
-$result = $gateway->insertNotificationListener($listener);
