@@ -130,14 +130,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php') ==
                     ->addParams($params)
                     ->setIcon('download')
                     ->displayLabel();
-                ?>
-                    <script>
-                    const button = document.querySelector($('#timetableSubManage input[type=submit]'));
-                    button.addEventListener('click', event => {
-                            tb_remove();
-                      });
-                    </script>
-                <?php
             }
 
             $table->addColumn('name', __('Name'))->format(Format::using('name', ['title', 'preferredName', 'surname', 'type', 'false']));

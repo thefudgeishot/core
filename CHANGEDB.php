@@ -1088,5 +1088,7 @@ $sql[$count][1] = "
 ++$count;
 $sql[$count][0] = '24.0.00';
 $sql[$count][1] = "
-INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `type`, `scopes`, `active`) VALUES ('Updated Timetable Subscriber', 'Timetable', 'Timetable subscriber_viewEdit', 'Core', 'All,gibbonPersonIDStudent,gibbonYearGroupID', 'Y');end
+INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `type`, `scopes`, `active`) VALUES ('Updated Timetable Subscriber', 'Timetable', 'View Master Timetable', 'Core', 'All', 'Y');end
+UPDATE `gibbonNotificationEvent` SET actionName='View Master Timetable' WHERE event='Updated Timetable Subscriber';end
+UPDATE `gibbonNotificationEvent` SET actionName='View Timetable by Person' WHERE event='Updated Timetable Subscriber';end
 ";

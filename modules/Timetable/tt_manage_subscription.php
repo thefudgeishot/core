@@ -35,3 +35,14 @@ $row = $form->addRow();
     $row->addSubmit();
 
 echo $form->getOutput();
+
+
+?>
+    <script>
+    const button = document.querySelector('#timetableSubManage input[type=submit]');
+    button.addEventListener('click', event => {
+            setTimeout(()=>{
+              tb_remove();
+            },1000);
+      });
+    </script>
