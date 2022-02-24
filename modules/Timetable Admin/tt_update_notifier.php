@@ -27,11 +27,10 @@ $event->pushNotifications($notificationGateway, $notificationSender);
 
             // Add event listeners to the notification sender
             $event->pushNotifications($notificationGateway, $notificationSender);
+// Send all notifications
+$notificationSender->sendNotifications();
+
 
 $URL .= "&return=success0"; //TODO: IF THE NOTIFICATION ERRORS, WE MIGHT NOT WANT TO THROW A SUCCESS MESSAGE
 header("Location: {$URL}");
 ?>
-            // Send all notifications
-            $notificationSender->sendNotifications();
-
- ?>
