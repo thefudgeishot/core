@@ -10,29 +10,25 @@ use Gibbon\Domain\Students\StudentNoteGateway;
 use Gibbon\Domain\IndividualNeeds\INAssistantGateway;
 use Gibbon\Data\Validator;
 
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Timetable Admin/tt.php';
 
-// Send notification once called with | php /modules/Timetable Admin/tt_update_notifier.php
-          //  $dataDetail = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
-          //  $sqlDetail = 'SELECT gibbonYearGroupID FROM gibbonFormGroup JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) JOIN gibbonPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID';
-          //  $resultDetail = $connection2->prepare($sqlDetail);
-          //  $resultDetail->execute($dataDetail);
-        // if ($resultDetail->rowCount() == 1) {
-          // $rowDetail = $resultDetail->fetch();
+$notificationGateway = new NotificationGateway($pdo);
+$notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
 
-            // Initialize the notification sender & gateway objects
-            $notificationGateway = new NotificationGateway($pdo);
-            $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
+// Raise a new notification event
+$event = new NotificationEvent('Timetable', 'Updated Timetable Subscriber');
 
-            // Raise a new notification event
-            $event = new NotificationEvent('Timetable', 'Updated Timetable Subscriber');
+$notificationText = sprintf(('The timetable has been updated, to update your downloaded calendar please <a href="/index.php?q=/modules/Timetable/tt_manage_subscription.php">download</a> it here again.').'<br/><br/>');
 
-            $notificationText = sprintf(('The timetable has been updated, to update your downloaded calendar please <a href="/index.php?q=/modules/Timetable/tt_manage_subscription.php">download</a> it here again.').'<br/><br/>');
+$event->setNotificationText($notificationText);
 
-            $event->setNotificationText($notificationText);
+// Add event listeners to the notification sender
+$event->pushNotifications($notificationGateway, $notificationSender);
 
-            // Add event listeners to the notification sender
-            $event->pushNotifications($notificationGateway, $notificationSender);
+// Send all notifications
+$notificationSender->sendNotifications();
 
-            // Send all notifications
-            $notificationSender->sendNotifications();
- ?>
+
+$URL .= "&return=success0"; //TODO: IF THE NOTIFICATION ERRORS, WE MIGHT NOT WANT TO THROW A SUCCESS MESSAGE
+header("Location: {$URL}");
+?>
