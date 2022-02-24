@@ -30,7 +30,8 @@ $event->pushNotifications($notificationGateway, $notificationSender);
 // Send all notifications
 $notificationSender->sendNotifications();
 
-
 $URL .= "&return=success0"; //TODO: IF THE NOTIFICATION ERRORS, WE MIGHT NOT WANT TO THROW A SUCCESS MESSAGE
 header("Location: {$URL}");
 ?>
+
+ ?>
