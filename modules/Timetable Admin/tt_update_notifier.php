@@ -18,6 +18,7 @@ $notificationSender = new NotificationSender($notificationGateway, $gibbon->sess
 // Raise a new notification event
 $event = new NotificationEvent('Timetable', 'Updated Timetable Subscriber');
 
+<<<<<<< HEAD
             $actionLink = "/index.php?q=/modules/Timetable/tt_manage_subscription.php";
 
             $notificationText = sprintf(('The timetable has been updated, to update your timetable click the action header').'<br/><br/>');
@@ -29,9 +30,24 @@ $event->pushNotifications($notificationGateway, $notificationSender);
             $event->pushNotifications($notificationGateway, $notificationSender);
 // Send all notifications
 $notificationSender->sendNotifications();
+=======
+$notificationText = sprintf(('The timetable has been updated, to update your downloaded calendar please <a href="/index.php?q=/modules/Timetable/tt_manage_subscription.php">download</a> it here again.').'<br/><br/>');
+
+$event->setNotificationText($notificationText);
+
+// Add event listeners to the notification sender
+$event->pushNotifications($notificationGateway, $notificationSender);
+
+// Send all notifications
+$notificationSender->sendNotifications();
+
+>>>>>>> main
 
 $URL .= "&return=success0"; //TODO: IF THE NOTIFICATION ERRORS, WE MIGHT NOT WANT TO THROW A SUCCESS MESSAGE
 header("Location: {$URL}");
 ?>
+<<<<<<< HEAD
 
  ?>
+=======
+>>>>>>> main
