@@ -514,7 +514,5 @@ INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, 
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Admissions' AND gibbonAction.name='Manage Other Forms'));end
 UPDATE gibbonCountry SET iddCountryCode='218' WHERE printable_name='Libya';end
 UPDATE gibbonSetting SET value=CONCAT(value, ',pagebreak,columnbreak') WHERE name='allowableHTML' AND scope='System';end
-INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `type`, `scopes`, `active`) VALUES ('Updated Timetable Subscriber', 'Timetable', 'View Master Timetable', 'Core', 'All', 'Y');end
-UPDATE `gibbonNotificationEvent` SET actionName='View Master Timetable' WHERE event='Updated Timetable Subscriber';end
-UPDATE `gibbonNotificationEvent` SET actionName='View Timetable by Person' WHERE event='Updated Timetable Subscriber';end
+INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `type`, `scopes`, `active`) VALUES ('Updated Timetable Subscriber', 'Timetable', 'View Timetable by Person', 'Core', 'All', 'Y');end
 ";
