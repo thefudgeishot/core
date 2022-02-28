@@ -11,12 +11,9 @@ $sql0 = 'SELECT * FROM gibbonTTDayDate JOIN gibbonTTDay on gibbonTTDayDate.gibbo
 $result0 = $connection2->prepare($sql0);
 $result0->execute($data0);
 if ($result0->rowCount() < 1) {
-    echo "<div class='error'>";
-    echo __('There are no records to display.');
-    echo '</div>';
 } else {
     while ($values0 = $result0->fetch()) {
-        $data1 = array( 'gibbonTTDayID' => $values0['gibbonTTDayID'], 'gibbonPersonID' => $session->get('gibbonPersonID') );
+        $data1 = array( 'gibbonTTDayID' => $values0['gibbonTTDayID'], 'gibbonPersonID' => $_POST['superSecretHiddenValue']);
         $sql1 = 'SELECT timeStart, timeEnd, gibbonCourse.name FROM gibbonTTDayRowClass
                   JOIN gibbonTTColumnRow on gibbonTTDayRowClass.gibbonTTColumnRowID = gibbonTTColumnRow.gibbonTTColumnRowID
                   JOIN gibbonCourseClassPerson on gibbonTTDayRowClass.gibbonCourseClassID = gibbonCourseClassPerson.gibbonCourseClassID
@@ -27,9 +24,6 @@ if ($result0->rowCount() < 1) {
         $result1 = $connection2->prepare($sql1);
         $result1->execute($data1);
         if ($result1->rowCount() < 1) {
-            echo "<div class='error'>";
-            echo __('There are no records to display.');
-            echo '</div>';
         } else {
             while ($values1 = $result1->fetch()) {
               $vEvent = new \Eluceo\iCal\Component\Event();
@@ -44,32 +38,35 @@ if ($result0->rowCount() < 1) {
                 // Event Creation
               $vEvent->setDtStart(new \DateTime($values0['date'].' '.$values1['timeStart']));
               $vEvent->setDtEnd(new \DateTime($values0['date'].' '.$values1['timeEnd']));
-              $vEvent->setSummary($values1['name']);
+                  if ( $_POST['prefix'] != '') {
+                    $vEvent->setSummary($_POST['prefix'] . ' | ' . $values1['name']);
+                  } else {
+                    $vEvent->setSummary($values1['name']);
+                  }
               $vEvent->setUseTimezone(true);
               $vCalendar->addComponent($vEvent);
             }
         }
     }
-    
-    // Subscribe to timetable update notification
+    // Notification settings
     $gateway = new NotificationGateway($pdo);
     $result = $gateway->selectNotificationEventByName('Timetable', 'Updated Timetable Subscriber')->fetch();
-    $gibbonNotificationEventID = $result['gibbonNotificationEventID'];
-    $gibbonPersonID = $gibbon->session->get('gibbonPersonID');
-    $scopeType = 'All';
-    $scopeID = 0;
-    $listener = array(
-        'gibbonNotificationEventID' => $result['gibbonNotificationEventID'],
-        'gibbonPersonID'            => $gibbonPersonID,
-        'scopeType'                 => $scopeType,
-        'scopeID'                   => $scopeID
-    );
+        $gibbonNotificationEventID = $result['gibbonNotificationEventID'];
+        $gibbonPersonID = $gibbon->session->get('gibbonPersonID');
+        $listeners = $gateway->selectAllNotificationListeners($result['gibbonNotificationEventID'])->fetchAll();
+        $scopeType = 'All';
+        $scopeID = 0;
+        $listener = array(
+            'gibbonNotificationEventID' => $result['gibbonNotificationEventID'],
+            'gibbonPersonID'            => $gibbonPersonID,
+            'scopeType'                 => $scopeType,
+            'scopeID'                   => $scopeID
+        );
+    if (!in_array($gibbonPersonID, array_column($listeners, 'gibbonPersonID'))){
+      $result = $gateway->insertNotificationListener($listener);
+    }
 
-    $result = $gateway->insertNotificationListener($listener);
-    
     header('Content-Type: text/calendar; charset=utf-8');
     header('Content-Disposition: attachment; filename="cal.ics"');
     echo $vCalendar->render();
 }
-
-
