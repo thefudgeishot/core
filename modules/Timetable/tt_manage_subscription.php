@@ -30,6 +30,11 @@ $row = $form->addRow();
     $form->addHiddenValue('address', $session->get('address'));
     $options = array('No Reminder', '5 minutes before', '10 minutes before', '15 minutes before'); //TODO: Turn this into key => value pairs, and modify the select to use them, so that you can have the values be the relevant time specifier to go directly into your $vAlarm, so you require less logic when exporting
     $row->addSelect('options')->fromArray($options);
+    $form->addHiddenValue('superSecretHiddenValue',$_GET['gibbonPersonID']);
+
+$row = $form->addRow();
+    $row->addLabel('prefix', __('Prefix'))->description(__('Optionally add your input as a prefix to calendar events.'));
+    $row->addTextField('prefix');
 
 $row = $form->addRow();
     $row->addSubmit();

@@ -440,7 +440,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                         $table->addColumn('lockerNumber', __('Locker Number'));
 
-                        $table->addColumn('studnetID', __('Student ID'));
+                        $table->addColumn('studentID', __('Student ID'));
 
                         $table->addColumn('house', __('House'))
                                 ->format(function($row) use ($container) {
@@ -696,9 +696,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         $col->addColumn('ethnicity', __('Ethnicity'));
                         $col->addColumn('religion', __('Religion'));
 
-                        $col->addColumn('languageFirst', __('First Language'));
-                        $col->addColumn('languageSecond', __('Second Language'));
-                        $col->addColumn('languageThird', __('Third Language'));
+                        $col->addColumn('languageFirst', __('First Language'))->translatable();
+                        $col->addColumn('languageSecond', __('Second Language'))->translatable();
+                        $col->addColumn('languageThird', __('Third Language'))->translatable();
 
                         $col = $table->addColumn('System Access', __('System Access'));
 

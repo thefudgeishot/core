@@ -119,18 +119,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php') ==
                     ->displayLabel()
                     ->prepend((!empty($search)) ? ' | ' : '');;
             }
-            if ($gibbonPersonID == $gibbon->session->get('gibbonPersonID')) {
-              $params = [
-                  "gibbonPersonID" => $gibbonPersonID,
-                  "gibbonSchoolYearID" => $gibbon->session->get('gibbonSchoolYearID')
-                ];
-                $table->addHeaderAction('export', __('Export'))
-                    ->modalWindow()
-                    ->setURL('/modules/Timetable/tt_manage_subscription.php')
-                    ->addParams($params)
-                    ->setIcon('download')
-                    ->displayLabel();
-            }
+            $table->addHeaderAction('export', __('Export'))
+                ->modalWindow()
+                ->setURL('/modules/Timetable/tt_manage_subscription.php')
+                ->addParams($params)
+                ->setIcon('download')
+                ->displayLabel();
+
 
             $table->addColumn('name', __('Name'))->format(Format::using('name', ['title', 'preferredName', 'surname', 'type', 'false']));
                         $table->addColumn('yearGroup', __('Year Group'));
