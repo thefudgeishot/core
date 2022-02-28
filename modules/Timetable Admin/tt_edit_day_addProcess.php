@@ -69,8 +69,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_da
                 header("Location: {$URL}");
                 exit();
             }
-            //notify timetable change
-            require_once('/modules/Timetable Admin/tt_update_notifier.php')
 
             //Last insert ID
             $AI = str_pad($connection2->lastInsertID(), 6, '0', STR_PAD_LEFT);
