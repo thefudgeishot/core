@@ -12,14 +12,16 @@ use Gibbon\Data\Validator;
 
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/Timetable Admin/tt.php';
 
+$gibbonPersonID = $gibbon->session->get('gibbonPersonID');
+
 $notificationGateway = new NotificationGateway($pdo);
 $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
 
 // Raise a new notification event
 $event = new NotificationEvent('Timetable', 'Updated Timetable Subscriber');
-$actionLink = "/index.php?q=/modules/Timetable/tt_manage_subscription.php";
+$actionLink = "/index.php?q=/modules/Timetable/tt_view.php&gibbonPersonID=".$gibbonPersonID;
 
-$notificationText = sprintf(('The timetable has been updated, to update your downloaded calendar please download it from the action header').'<br/><br/>');
+$notificationText = sprintf(('The timetable has been updated, to update your downloaded calendar please export it again.').'<br/><br/>');
 
 $event->setNotificationText($notificationText);
 $event->setActionLink($actionLink);
